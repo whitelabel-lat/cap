@@ -79,6 +79,23 @@ function createServerEnv() {
 			CAP_VIDEOS_DEFAULT_PUBLIC: boolString(true).describe(
 				"Should videos be public or private by default",
 			),
+			// whitelabel fork: single-organization mode
+			CAP_DEFAULT_ORG_ID: z
+				.string()
+				.optional()
+				.describe(
+					"whitelabel fork: id of the organization every new user joins instead of getting a personal one",
+				),
+			CAP_DEFAULT_ORG_ROLE: z
+				.enum(["member", "admin"])
+				.optional()
+				.default("member")
+				.describe(
+					"whitelabel fork: role given to new users in CAP_DEFAULT_ORG_ID",
+				),
+			CAP_AUTO_SHARE_TO_ORG: boolString(false).describe(
+				"whitelabel fork: share every new video with its organization automatically",
+			),
 			CAP_CHROME_EXTENSION_ID: z
 				.string()
 				.optional()

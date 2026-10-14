@@ -1,4 +1,5 @@
 import { db } from "@cap/database";
+import { autoShareVideoToOrg } from "@cap/database/auto-share";
 import * as Db from "@cap/database/schema";
 import { Organisations } from "@cap/web-backend/src/Organisations/index";
 import { Storage } from "@cap/web-backend/src/Storage/index";
@@ -203,6 +204,12 @@ async function createDuplicate(operationId: string, payload: OperationPayload) {
 					: null,
 				isScreenshot: snapshot.isScreenshot,
 				skipProcessing: snapshot.skipProcessing,
+			});
+			// whitelabel fork: auto-share to the org (CAP_AUTO_SHARE_TO_ORG)
+			await autoShareVideoToOrg(tx, {
+				videoId: destinationId,
+				orgId: Organisation.OrganisationId.make(snapshot.orgId),
+				ownerId: User.UserId.make(snapshot.ownerId),
 			});
 		}
 		const now = new Date();

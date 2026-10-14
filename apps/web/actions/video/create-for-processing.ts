@@ -2,6 +2,7 @@
 
 import { db } from "@cap/database";
 import { getCurrentUser } from "@cap/database/auth/session";
+import { autoShareVideoToOrg } from "@cap/database/auto-share";
 import { nanoId } from "@cap/database/helpers";
 import { videos, videoUploads } from "@cap/database/schema";
 import { getNewVideoPublic } from "@cap/database/video-sharing-default";
@@ -101,6 +102,8 @@ export async function createVideoForServerProcessing({
 			public: await getNewVideoPublic(orgId),
 			...(folderId ? { folderId } : {}),
 		});
+	// whitelabel fork: auto-share to the org (CAP_AUTO_SHARE_TO_ORG)
+	await autoShareVideoToOrg(db(), { videoId, orgId, ownerId: user.id });
 
 	await db().insert(videoUploads).values({
 		videoId,

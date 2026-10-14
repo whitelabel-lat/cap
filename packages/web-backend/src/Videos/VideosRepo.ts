@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { autoShareVideoToOrg } from "@cap/database/auto-share";
 import { nanoId } from "@cap/database/helpers";
 import * as Db from "@cap/database/schema";
 import { type User, Video } from "@cap/web-domain";
@@ -160,6 +161,13 @@ export class VideosRepo extends Effect.Service<VideosRepo>()("VideosRepo", {
 							);
 
 						await Promise.all(promises);
+
+						// whitelabel fork: auto-share to the org (CAP_AUTO_SHARE_TO_ORG)
+						await autoShareVideoToOrg(db, {
+							videoId: id,
+							orgId: data.orgId,
+							ownerId: data.ownerId,
+						});
 					}),
 				);
 

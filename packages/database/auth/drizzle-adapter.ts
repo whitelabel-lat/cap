@@ -15,6 +15,7 @@ import {
 	users,
 	verificationTokens,
 } from "../schema.ts";
+import { joinDefaultOrganization } from "./default-org.ts";
 import type { ValidatedSsoIdentity } from "./sso.ts";
 import { provisionStripeCustomer } from "./stripe-customer.ts";
 
@@ -163,6 +164,9 @@ export function DrizzleAdapter(
 				if (pendingInvite || ssoIdentity) {
 					return;
 				}
+
+				// whitelabel fork: join the shared default org instead of a personal one
+				if (await joinDefaultOrganization(tx, userId)) return;
 
 				const organizationId = Organisation.OrganisationId.make(nanoId());
 

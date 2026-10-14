@@ -26,6 +26,10 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@cap/database", () => ({ db: mocks.database }));
+// whitelabel fork: auto-share has its own unit tests (auto-share-video.test.ts)
+vi.mock("@cap/database/auto-share", () => ({
+	autoShareVideoToOrg: async () => false,
+}));
 vi.mock("@cap/database/helpers", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@cap/database/helpers")>()),
 	nanoId: () => mocks.nextId,

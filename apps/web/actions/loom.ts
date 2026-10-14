@@ -3,6 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { db } from "@cap/database";
 import { getCurrentUser } from "@cap/database/auth/session";
+import { autoShareVideoToOrg } from "@cap/database/auto-share";
 import { nanoId } from "@cap/database/helpers";
 import {
 	folders,
@@ -442,6 +443,9 @@ async function importLoomVideoForOwner({
 				folderId: destination.folderId,
 			});
 		}
+
+		// whitelabel fork: auto-share to the org (CAP_AUTO_SHARE_TO_ORG)
+		await autoShareVideoToOrg(tx, { videoId, orgId, ownerId });
 	});
 
 	const rawFileKey = `${ownerId}/${videoId}/raw-upload.mp4`;

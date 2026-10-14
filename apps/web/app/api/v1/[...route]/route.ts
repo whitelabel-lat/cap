@@ -1,5 +1,6 @@
 import { createHash, createHmac } from "node:crypto";
 import { HeadBucketCommand, S3Client } from "@aws-sdk/client-s3";
+import { autoShareVideoToOrg } from "@cap/database/auto-share";
 import {
 	decrypt,
 	encrypt,
@@ -2390,6 +2391,12 @@ const queueAgentLoomImport = Effect.fn("Agent.queueLoomImport")(
 										duration: download.durationSeconds,
 										width: download.width,
 										height: download.height,
+									});
+									// whitelabel fork: auto-share to the org (CAP_AUTO_SHARE_TO_ORG)
+									await autoShareVideoToOrg(tx, {
+										videoId,
+										orgId: input.organizationId,
+										ownerId,
 									});
 									await tx.insert(Db.videoUploads).values({
 										videoId,
@@ -6610,6 +6617,12 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 									},
 									createdAt: now,
 									updatedAt: now,
+								});
+								// whitelabel fork: auto-share to the org (CAP_AUTO_SHARE_TO_ORG)
+								await autoShareVideoToOrg(tx, {
+									videoId,
+									orgId: organizationId,
+									ownerId: principal.id,
 								});
 								await tx.insert(Db.videoUploads).values({
 									videoId,

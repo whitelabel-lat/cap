@@ -1,4 +1,6 @@
 import { db } from "@cap/database";
+import { joinDefaultOrganization } from "@cap/database/auth/default-org";
+import { autoShareVideoToOrg } from "@cap/database/auto-share";
 import { sendEmail } from "@cap/database/emails/config";
 import { FirstShareableLink } from "@cap/database/emails/first-shareable-link";
 import { nanoId } from "@cap/database/helpers";
@@ -215,8 +217,16 @@ app.get(
 			// being removed from their last org); provision a personal org like
 			// signup does instead of failing every upload.
 			if (userOrganizations.length === 0) {
-				const organizationId = Organisation.OrganisationId.make(nanoId());
+				let organizationId = Organisation.OrganisationId.make(nanoId());
+				let provisionedName = "My Organization";
 				await db().transaction(async (tx) => {
+					// whitelabel fork: prefer the shared default org
+					const defaultOrgId = await joinDefaultOrganization(tx, user.id);
+					if (defaultOrgId) {
+						organizationId = defaultOrgId;
+						provisionedName = "Default Organization";
+						return;
+					}
 					await tx.insert(organizations).values({
 						id: organizationId,
 						ownerId: user.id,
@@ -236,7 +246,7 @@ app.get(
 						})
 						.where(eq(users.id, user.id));
 				});
-				userOrganizations.push({ id: organizationId, name: "My Organization" });
+				userOrganizations.push({ id: organizationId, name: provisionedName });
 			}
 
 			const userOrgIds = userOrganizations.map((org) => org.id);
@@ -329,6 +339,12 @@ app.get(
 					fps,
 					...(metadata ? { metadata } : {}),
 				});
+			// whitelabel fork: auto-share to the org (CAP_AUTO_SHARE_TO_ORG)
+			await autoShareVideoToOrg(db(), {
+				videoId: idToUse,
+				orgId: videoOrgId,
+				ownerId: user.id,
+			});
 
 			const clientSupportsUploadProgress = isFromDesktopSemver(
 				c.req,

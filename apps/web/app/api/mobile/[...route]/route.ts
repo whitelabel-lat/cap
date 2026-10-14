@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { authOptions } from "@cap/database/auth/auth-options";
 import { isEmailAllowedForSignup } from "@cap/database/auth/domain-utils";
+import { autoShareVideoToOrg } from "@cap/database/auto-share";
 import { hashPassword } from "@cap/database/crypto";
 import { sendEmail } from "@cap/database/emails/config";
 import { OTPEmail } from "@cap/database/emails/otp-email";
@@ -2395,6 +2396,12 @@ const importLoom = Effect.fn("Mobile.importLoom")(function* (
 				duration: download.durationSeconds,
 				width: download.width,
 				height: download.height,
+			});
+			// whitelabel fork: auto-share to the org (CAP_AUTO_SHARE_TO_ORG)
+			await autoShareVideoToOrg(tx, {
+				videoId,
+				orgId: user.activeOrganizationId,
+				ownerId: user.id,
 			});
 			await tx.insert(Db.videoUploads).values({
 				videoId,
