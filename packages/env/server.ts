@@ -93,6 +93,12 @@ function createServerEnv() {
 				.describe(
 					"whitelabel fork: role given to new users in CAP_DEFAULT_ORG_ID",
 				),
+			CAP_DEFAULT_ORG_EMAIL_DOMAINS: z
+				.string()
+				.optional()
+				.describe(
+					"whitelabel fork: comma-separated email domains allowed to auto-join CAP_DEFAULT_ORG_ID; unset or empty = nobody",
+				),
 			CAP_AUTO_SHARE_TO_ORG: boolString(false).describe(
 				"whitelabel fork: share every new video with its organization automatically",
 			),

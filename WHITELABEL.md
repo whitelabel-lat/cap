@@ -17,14 +17,15 @@ Objetivo: una sola organización para todo el equipo, todos los videos visibles 
 
 | Cambio | Dónde | Cómo se activa |
 |---|---|---|
-| Los usuarios nuevos entran a una organización existente en vez de crearse una propia | `packages/database/auth/default-org.ts` (usado en `auth/drizzle-adapter.ts` `createUser` y en el alta de organización por defecto de `app/api/desktop/[...route]/video.ts`) | `CAP_DEFAULT_ORG_ID`, `CAP_DEFAULT_ORG_ROLE` |
+| Los usuarios nuevos con correo de un dominio permitido entran a una organización existente en vez de crearse una propia | `packages/database/auth/default-org.ts` (usado solo en `auth/drizzle-adapter.ts` `createUser`) | `CAP_DEFAULT_ORG_ID`, `CAP_DEFAULT_ORG_ROLE`, `CAP_DEFAULT_ORG_EMAIL_DOMAINS` |
 | Cada video nuevo se comparte con su organización (fila en `shared_videos`) | `packages/database/auto-share.ts`, llamado tras cada inserción en `videos` | `CAP_AUTO_SHARE_TO_ORG=true` |
 | Videos privados por defecto | sin código nuestro: `CAP_VIDEOS_DEFAULT_PUBLIC=false` (y `organizations.defaultVideoVisibility='private'`, lo fija el script de fusión) | variable de entorno |
 | Script que fusiona las organizaciones personales ya existentes | `scripts/whitelabel/merge-orgs.sql` | manual, una vez (ver abajo) |
 
 Detalles:
 
-- `joinDefaultOrganization` inserta en `organization_members` (id de 15 caracteres, mismo alfabeto que `nanoId`) y fija `users.activeOrganizationId` y `defaultOrgId`. Si la variable no está o la organización no existe (o está en `tombstoneAt`) devuelve `null` y se aplica el comportamiento de upstream (organización personal).
+- `joinDefaultOrganization(tx, userId, email)` inserta en `organization_members` (id de 15 caracteres, mismo alfabeto que `nanoId`) y fija `users.activeOrganizationId` y `defaultOrgId`. Solo lo hace si el dominio del correo (lo que va tras la última `@`, sin distinguir mayúsculas, coincidencia exacta: `mail.whitelabel.lat`, `whitelabel.lat.evil.com` o `evilwhitelabel.lat` no valen) está en `CAP_DEFAULT_ORG_EMAIL_DOMAINS`. Si esa lista está vacía o sin definir no entra nadie (falla cerrado). Si `CAP_DEFAULT_ORG_ID` no está, la organización no existe (o está en `tombstoneAt`) o el dominio no está en la lista, devuelve `null` y se aplica el comportamiento de upstream (organización personal "My Organization").
+- Solo se llama al crear un usuario nuevo. La ruta de escritorio `/api/desktop/video/create`, cuando el usuario no tiene ninguna organización, crea una organización personal como upstream y **no** vuelve a unirlo a la compartida.
 - No se toca: usuarios invitados (`pendingInvite`) ni SSO, que siguen su flujo; la creación manual de organizaciones por un usuario; `provisionOrganizationInvitee`.
 - `autoShareVideoToOrg` es idempotente (consulta antes de insertar) y usa la misma transacción cuando existe. Sitios cubiertos: grabación desktop (`/api/desktop/video/create`), `createInstantRecording` y duplicados (`VideosRepo.create`), subida web (`actions/video/upload.ts`, `create-for-processing.ts`), importación Loom (`actions/loom.ts`, v1 y mobile), subida vía API v1 y duplicado de operaciones de agente. Al añadir un sitio nuevo que haga `insert(videos)` en un merge de upstream, hay que llamar al helper.
 - La app de escritorio guarda el `orgId` viejo y lo sigue mandando. `/api/desktop/video/create` ya lo ignora si no existe (cae a la organización por defecto del usuario), verificado en local tras borrar las organizaciones viejas.
@@ -37,8 +38,9 @@ Nuevas (todas opcionales):
 
 | Variable | Valor en producción | Efecto |
 |---|---|---|
-| `CAP_DEFAULT_ORG_ID` | `p1m68fg1fs7n0a9` | Organización a la que entra todo usuario nuevo |
+| `CAP_DEFAULT_ORG_ID` | `p1m68fg1fs7n0a9` | Organización a la que entra todo usuario nuevo de un dominio de `CAP_DEFAULT_ORG_EMAIL_DOMAINS` |
 | `CAP_DEFAULT_ORG_ROLE` | `admin` | Rol del usuario nuevo (`member` o `admin`; por defecto `member`) |
+| `CAP_DEFAULT_ORG_EMAIL_DOMAINS` | `whitelabel.lat` (propuesto; confirmar en la fase 2) | Dominios de correo (separados por comas) que entran solos a `CAP_DEFAULT_ORG_ID`. Vacía o sin definir = nadie entra solo |
 | `CAP_AUTO_SHARE_TO_ORG` | `true` | Comparte cada video nuevo con su organización |
 | `CAP_VIDEOS_DEFAULT_PUBLIC` | `false` | Videos nuevos privados (upstream: `true`) |
 
@@ -85,7 +87,7 @@ Variables que necesita cap-web en producción (nombres; "copiar" = mismo valor q
 
 - Copiar: `DATABASE_URL`, `NEXTAUTH_SECRET`, `DATABASE_ENCRYPTION_KEY`, `WEB_URL`, `NEXTAUTH_URL`, `CAP_AWS_BUCKET`, `CAP_AWS_REGION`, `CAP_AWS_ACCESS_KEY`, `CAP_AWS_SECRET_KEY`, `S3_PUBLIC_ENDPOINT`, `S3_INTERNAL_ENDPOINT`, `RESEND_API_KEY`, `RESEND_FROM_DOMAIN`, `OPENAI_API_KEY`.
 - Añadir `S3_PATH_STYLE=true` si no se hereda (el valor por defecto ya es `true`).
-- Nuevas del fork: las cuatro de la tabla de arriba.
+- Nuevas del fork: las cinco de la tabla de arriba.
 - Media server: `MEDIA_SERVER_URL=http://<servicio>:3456`, `MEDIA_SERVER_WEBHOOK_URL=http://<cap-web>:3000` (URL interna a la que el media-server llama de vuelta), `MEDIA_SERVER_WEBHOOK_SECRET` (el mismo valor en cap-web y en el media-server; si falta, el media-server rechaza todo).
 - Transcripción: `ASSEMBLY_API_KEY` (**`DEEPGRAM_API_KEY` ya no se lee**: upstream lo sustituyó por AssemblyAI).
 - `DEEPGRAM_API_KEY` se puede quitar.
@@ -122,6 +124,8 @@ Leyenda: OK = funciona con el entorno actual; MS = necesita el media-server; env
 
 ## Trampas conocidas
 
+- **Acceso a la organización compartida**: solo entran solos los usuarios nuevos con un dominio de `CAP_DEFAULT_ORG_EMAIL_DOMAINS` (con rol `CAP_DEFAULT_ORG_ROLE`, en producción `admin`: ven todos los videos). Cualquier otra persona (por ejemplo una cuenta de gmail) necesita una invitación de la organización: `provisionOrganizationInvitee` crea el usuario y su membresía al invitar, así que al iniciar sesión `createUser` ya lo encuentra y no pasa por `joinDefaultOrganization`. El registro es abierto: quien no tenga dominio permitido ni invitación se crea su propia organización personal y no ve nada nuestro. Para cerrar el registro, usar además `CAP_ALLOWED_SIGNUP_DOMAINS` (solo se aplica a correos sin usuario creado; los invitados de otros dominios ya existen al invitarlos y pueden entrar igual).
+- **Los miembros quitados no vuelven a entrar solos**: si un admin quita a alguien de la organización compartida, ni el login ni la app de escritorio lo vuelven a añadir (la app de escritorio le crea una organización personal vacía). Para devolverle acceso hay que invitarlo de nuevo.
 - **Collation de MySQL**: las migraciones nuevas crean tablas con la collation por defecto de la base; si el servidor no usa la misma que las tablas existentes (`utf8mb4_0900_ai_ci`), las FK fallan con `errno 3780`. En producción coincide (se verificó en el servidor). Al reintentar tras un fallo parcial, el segundo intento falla con `ER_FK_DUP_NAME` (DDL no transaccional): hay que restaurar el dump, no reintentar.
 - `instrumentation.node.ts` corre las migraciones al arrancar solo si `NEXT_PUBLIC_DOCKER_BUILD=true` (la imagen de Docker lo trae) y además crea el bucket y le pone una política de lectura pública sobre `/*`. Las URLs de los videos son prefirmadas; la política pública existe igualmente en el bucket.
 - Un video (`0trhw7zz3p76n8k`) existe en la base pero no tiene objeto en MinIO (ya ocurría en producción): su página da 404 en el reproductor.

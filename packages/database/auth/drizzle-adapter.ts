@@ -166,7 +166,8 @@ export function DrizzleAdapter(
 				}
 
 				// whitelabel fork: join the shared default org instead of a personal one
-				if (await joinDefaultOrganization(tx, userId)) return;
+				// (only for emails in CAP_DEFAULT_ORG_EMAIL_DOMAINS)
+				if (await joinDefaultOrganization(tx, userId, normalizedEmail)) return;
 
 				const organizationId = Organisation.OrganisationId.make(nanoId());
 
