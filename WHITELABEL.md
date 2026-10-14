@@ -1,6 +1,6 @@
 # Cap Whitelabel: fork y despliegue
 
-Estado al 2026-10-14 (fase 2 hecha: desplegado en Dokploy `vanguardistas`, ver "Producción"; workflows, transcripción e IA funcionando).
+Estado al 2026-10-14 (fase 2 hecha: desplegado en Dokploy `vanguardistas`, ver "Producción"; workflows, transcripción e IA funcionando; crons de recuperación activos, miniaturas y GIF de los videos viejos generados, borrado de videos sin filas huérfanas).
 
 ## Qué es este repo
 
@@ -23,6 +23,10 @@ Objetivo: una sola organización para todo el equipo, todos los videos visibles 
 | Script que fusiona las organizaciones personales ya existentes | `scripts/whitelabel/merge-orgs.sql` | manual, una vez (ver abajo) |
 | Directorio de datos de Workflow DevKit escribible en la imagen (`/app/.workflow-data`, dueño `nextjs`) | `apps/web/Dockerfile` (test `__tests__/unit/dockerfile-workflow-data.test.ts`) | siempre; en producción además va en un volumen |
 | Script que borra filas viejas de `video_uploads` de subidas ya terminadas | `scripts/whitelabel/clear-stale-uploads.sql` | manual, una vez (ver trampas) |
+| Servicio de crons: llama a `/api/cron/*` de cap-web con `CRON_SECRET` en el horario de `vercel.json` (en Vercel lo hace la plataforma) | `scripts/whitelabel/cron/` (`Dockerfile` alpine + supercronic, `crontab`, `cap-cron.sh`); test `__tests__/unit/whitelabel-cron-service.test.ts` | servicio `loom-cron-tyvzw2` en Dokploy (ver "Crons") |
+| Borrar un video borra también sus filas en `shared_videos`, `space_videos`, `comments`, `notifications` y `video_edits` (upstream solo borraba video, subida, importado y job) | `packages/web-backend/src/Videos/VideosRepo.ts` (`delete_`); test `__tests__/unit/video-delete-dependents.test.ts` | siempre |
+| Script que borra filas huérfanas de videos ya borrados | `scripts/whitelabel/clean-orphan-shares.sql` | manual, idempotente |
+| Script que genera la miniatura y el GIF de videos que nunca pasaron por el media-server, sin tocar `result.mp4` ni la base | `scripts/whitelabel/regenerate-previews.mjs` | manual (ver "Miniaturas y GIF de videos viejos") |
 
 Detalles:
 
@@ -32,6 +36,7 @@ Detalles:
 - `autoShareVideoToOrg` es idempotente (consulta antes de insertar) y usa la misma transacción cuando existe. Sitios cubiertos: grabación desktop (`/api/desktop/video/create`), `createInstantRecording` y duplicados (`VideosRepo.create`), subida web (`actions/video/upload.ts`, `create-for-processing.ts`), importación Loom (`actions/loom.ts`, v1 y mobile), subida vía API v1 y duplicado de operaciones de agente. Al añadir un sitio nuevo que haga `insert(videos)` en un merge de upstream, hay que llamar al helper.
 - La app de escritorio guarda el `orgId` viejo y lo sigue mandando. `/api/desktop/video/create` ya lo ignora si no existe (cae a la organización por defecto del usuario), verificado en local tras borrar las organizaciones viejas.
 - El onboarding no renombra la organización compartida: solo el owner puede editarla.
+- Borrado de videos: todas las rutas de la UI, escritorio, extensión y RPC pasan por `Videos.delete` → `VideosRepo.delete`, que ahora borra el mismo conjunto de filas que upstream ya borra en la operación de agente (`deleteCapDatabase` en `workflows/agent-cap-operation.ts`) y en la API v1. El borrado de organizaciones (`Organisations/index.ts`) ya limpiaba `shared_videos`. No hay borrado de usuarios en la web. `video_edits` y `video_viewer_grants` tienen FK `ON DELETE CASCADE` en la base.
 - Tests nuevos: `apps/web/__tests__/unit/default-organization.test.ts`, `auto-share-video.test.ts`. `recording-storage-lifecycle.test.ts` mockea `@cap/database/auto-share` (su `serverEnv()` no está disponible en ese test).
 
 ## Variables de entorno
@@ -46,6 +51,8 @@ Nuevas (todas opcionales):
 | `CAP_AUTO_SHARE_TO_ORG` | `true` | Comparte cada video nuevo con su organización |
 | `CAP_VIDEOS_DEFAULT_PUBLIC` | `false` | Videos nuevos privados (upstream: `true`) |
 
+`CRON_SECRET` no es nueva (la leen las rutas `/api/cron/*` de upstream), pero autoalojado hay que ponerla a mano: ver "Crons".
+
 Las existentes que necesita producción están en la sección "Despliegue".
 
 ## Fusionar organizaciones existentes (una vez)
@@ -56,6 +63,34 @@ Las existentes que necesita producción están en la sección "Despliegue".
 2. Hace todo en una transacción (procedimiento temporal) y es idempotente: todos los usuarios pasan a miembros de la organización destino (el owner conserva su rol, el resto `admin`), `activeOrganizationId`/`defaultOrgId` apuntan a ella, los videos de las organizaciones viejas se mueven y se comparten con la nueva (conservan id y `public`), folders/spaces/notificaciones/buckets/importados se reasignan, se borran invitaciones/SSO/BAA de las viejas, la nueva queda con `defaultVideoVisibility='private'` y por último se borran miembros y organizaciones viejas. Antes de borrar comprueba en `information_schema` que ninguna tabla con `organizationId`/`orgId`/`activeOrganizationId`/`defaultOrgId` siga apuntando a una vieja; si queda alguna, aborta con rollback.
 3. **Ejecutar solo después de que la imagen nueva haya aplicado las migraciones 0011-0049** (arranca sola al iniciar cap-web).
 4. Uso: `mysql -uroot -p planetscale < scripts/whitelabel/merge-orgs.sql`. Salida esperada con los datos actuales: 1 organización, 4 miembros, 14 videos, 14 shared_videos, 4 usuarios.
+
+## Crons
+
+En Vercel, `apps/web/vercel.json` llama a las rutas `/api/cron/*` con `Authorization: Bearer $CRON_SECRET` (la propia ruta lo comprueba; sin `CRON_SECRET` responden 500, con otro valor 401). Autoalojado lo hace el servicio `loom-cron-tyvzw2` (alpine + supercronic, usuario sin privilegios, UTC). `cap-cron.sh` pasa la cabecera a curl por stdin para que el secreto no salga en la lista de procesos y escribe en el log el JSON de respuesta y `HTTP <código>`.
+
+| Ruta | Horario (UTC) | Qué hace | Programado |
+|---|---|---|---|
+| `/api/cron/recover-failed-video-processing` | `7,22,37,52 * * * *` | Reintenta procesados web/Loom fallidos por errores recuperables (servidor ocupado, workflow actualizado) y reinicia procesado, transcripción e IA atascados (>1 h, videos de <48 h). Borra reservas de presupuesto de procesado caducadas | Sí |
+| `/api/cron/finalize-stale-desktop-segments` | `*/15 * * * *` | Finaliza grabaciones de escritorio por segmentos que quedaron a medias (>1 h) y revisa la salud de los trabajos de grabación; 503 si hay algo atascado | Sí |
+| `/api/cron/cleanup-agent-api` | `17 3 * * *` | Borra códigos de autorización, claves y operaciones caducadas de la API de agentes y de MCP | Sí |
+| `/api/cron/sync-loops` | `* * * * *` | Sincroniza contactos con Loops.so (marketing de Cap cloud) | No: no usamos Loops |
+| `/api/cron/developer-storage` | (no está en `vercel.json`) | Cobra créditos diarios de almacenamiento de apps de desarrollador | No: facturación de Cap cloud |
+
+Cambiar un horario o añadir una ruta: editar `scripts/whitelabel/cron/crontab`; el push redespliega el servicio. El test `whitelabel-cron-service.test.ts` falla si upstream añade una ruta a `vercel.json` que no esté programada ni excluida a propósito en el test.
+
+Comprobar a mano (desde el servidor): `docker exec $(docker ps -q -f name=loom-cron-tyvzw2) cap-cron /api/cron/cleanup-agent-api`. Logs: `docker logs $(docker ps -q -f name=loom-cron-tyvzw2)`.
+
+## Miniaturas y GIF de videos viejos
+
+Los videos que vienen del stack viejo no pasaron por el media-server: no tenían `preview/animated-preview.gif` y algunos tampoco `screenshot/screen-capture.jpg`. Upstream los regenera con el panel de admin `/admin/reprocess-video` (workflow `admin-reprocess-video`), que aquí no sirve: solo existe en Cap cloud (`NEXT_PUBLIC_IS_CAP`, `MESSENGER_ADMIN_EMAIL`) y además re-codifica y reemplaza `result.mp4`.
+
+`scripts/whitelabel/regenerate-previews.mjs` llama al mismo endpoint del media-server (`POST /video/process`) con las mismas claves de salida, pero con `remuxOnly`, la salida de video a una clave temporal que borra al final, sin webhook (no toca la base: ni estado, ni transcripción, ni IA) y sin sobrescribir una miniatura o un GIF que ya existan (salvo `--force`; respaldar antes). Se ejecuta dentro del contenedor de cap-web, que ya tiene las variables:
+
+```bash
+ssh vanguardistas 'C=$(docker ps -q -f name=loom-capweb-qcmdip); docker exec -i $C node --input-type=module - <ownerId>/<videoId> ...' < scripts/whitelabel/regenerate-previews.mjs
+```
+
+Escribe una línea JSON por video (`status: complete`, `thumbnail`/`preview: present`). Ejecutado el 2026-10-14 sobre los 13 videos con `result.mp4` (8 miniaturas y 13 GIF nuevos; `result.mp4` sin cambios). `0trhw7zz3p76n8k` no tiene objeto y no se puede regenerar.
 
 ## Actualizar desde upstream
 
@@ -88,9 +123,10 @@ git grep "whitelabel fork"     # revisar que nuestros cambios sigan
 | Dokploy | org `W Lab` → proyecto `Loom` → env `production` |
 | cap-web | application `loom-capweb-qcmdip`: git `https://github.com/whitelabel-lat/cap.git` rama `main`, Dockerfile `apps/web/Dockerfile`, contexto `.`, puerto 3000. Corre las migraciones al arrancar. Volumen `loom-capweb-qcmdip-workflow` → `/app/.workflow-data` (estado de los workflows) |
 | media-server | application `loom-mediaserver-wtljt9`: mismo repo, Dockerfile `apps/media-server/Dockerfile.standalone`, contexto `apps/media-server`, puerto 3456, sin dominio (solo red interna). watchPaths `apps/media-server/**` |
+| cron | application `loom-cron-tyvzw2`: mismo repo, Dockerfile `scripts/whitelabel/cron/Dockerfile`, contexto `scripts/whitelabel/cron`, sin puerto ni dominio. watchPaths `scripts/whitelabel/cron/**`, webhook propio de GitHub. Llama a `http://loom-capweb-qcmdip:3000/api/cron/*` por la red interna (ver "Crons") |
 | MinIO | application `loom-minio-7q612h`: imagen `pgsty/minio:RELEASE.2026-08-04T00-00-00Z@sha256:b6bf…` (la misma que usa el `docker-compose.yml` de upstream; `quay.io/minio/minio` ya no se puede descargar), args `server /data --address :3902 --console-address :3903`, volumen `loom-minio-7q612h-data` → `/data` |
 | MySQL | servicio mysql nativo `loom-mysql-okdbu1` (`mysql:8.0`, collation por defecto `utf8mb4_0900_ai_ci`, `--max_connections=1000`), base `planetscale`, usuario `root`, volumen `loom-mysql-okdbu1-data` → `/var/lib/mysql` |
-| Auto-deploy | Sí: webhooks de GitHub (push) del repo a `https://deploy.vanguardistas.co/api/deploy/<refreshToken>` para cap-web y media-server. **Push a `main` = despliegue a producción** (cap-web ~5 min de build en el servidor). MinIO y MySQL no se redespliegan solos |
+| Auto-deploy | Sí: webhooks de GitHub (push) del repo a `https://deploy.vanguardistas.co/api/deploy/<refreshToken>` para cap-web, media-server y cron (los dos últimos solo si el push toca sus watchPaths). **Push a `main` = despliegue a producción** (cap-web ~5 min de build en el servidor). MinIO y MySQL no se redespliegan solos |
 | Traefik | `/etc/dokploy/traefik/dynamic/loom-capweb-qcmdip.yml` y `loom-minio-7q612h.yml` (escritos a mano en la migración con el formato de Dokploy; si se edita el dominio en la UI, Dokploy los regenera) |
 | Stack viejo | compose `pedro-capso-r3y2en` (W Lab → Pedro, imagen oficial `ghcr.io/capsoftware/cap-web:latest`): **detenido**, contenedores con `restart=no`, `autoDeploy=false`, sin dominios; volúmenes `pedro-capso-r3y2en_ps-mysql` y `pedro-capso-r3y2en_minio-data` intactos. Borrarlo cuando todo esté confirmado |
 
@@ -108,6 +144,7 @@ Notas de la migración (2026-10-14):
 | `planetscale-20261014-post-merge.sql` | base nueva tras migraciones y fusión de organizaciones |
 | `planetscale-20261014-0253-pre-workflows.sql` | antes de arreglar los workflows y borrar las filas viejas de `video_uploads` |
 | `rollback-old-domains.sql` | filas `domain` originales del compose viejo |
+| `planetscale-20261014-1414-pre-maintenance.sql` | antes de los crons, la limpieza de huérfanas y las miniaturas/GIF |
 
 Respaldo nuevo antes de cada push que traiga migraciones:
 
@@ -122,7 +159,8 @@ ssh vanguardistas 'TS=$(date +%Y%m%d-%H%M); M=$(docker ps -q -f name=loom-mysql-
 
 ## Variables en producción (pestaña Environment de cada servicio en Dokploy; solo nombres)
 
-- **cap-web**: `NODE_ENV`, `WEB_URL`, `NEXTAUTH_URL` (`https://loom.lab.whitelabel.lat`), `DATABASE_URL` (`mysql://root:…@loom-mysql-okdbu1:3306/planetscale?ssl={"rejectUnauthorized":false}`), `DATABASE_ENCRYPTION_KEY` y `NEXTAUTH_SECRET` (**idénticos a los del stack viejo**: si cambian, los datos cifrados y las sesiones se rompen), `CAP_AWS_ACCESS_KEY`, `CAP_AWS_SECRET_KEY`, `CAP_AWS_BUCKET` (`capso`), `CAP_AWS_REGION`, `S3_PUBLIC_ENDPOINT` (`https://s3.loom.lab.whitelabel.lat`), `S3_INTERNAL_ENDPOINT` (`http://loom-minio-7q612h:3902`), `S3_PATH_STYLE=true`, `RESEND_API_KEY`, `RESEND_FROM_DOMAIN`, `OPENAI_API_KEY`, `ASSEMBLY_API_KEY`, `MEDIA_SERVER_URL` (`http://loom-mediaserver-wtljt9:3456`), `MEDIA_SERVER_WEBHOOK_URL` (`http://loom-capweb-qcmdip:3000`), `MEDIA_SERVER_WEBHOOK_SECRET`, `PORT=3000` y `WORKFLOW_LOCAL_DATA_DIR=/app/.workflow-data` (runtime de workflows, ver trampas), y las cinco del fork (tabla de arriba).
+- **cap-web**: `NODE_ENV`, `WEB_URL`, `NEXTAUTH_URL` (`https://loom.lab.whitelabel.lat`), `DATABASE_URL` (`mysql://root:…@loom-mysql-okdbu1:3306/planetscale?ssl={"rejectUnauthorized":false}`), `DATABASE_ENCRYPTION_KEY` y `NEXTAUTH_SECRET` (**idénticos a los del stack viejo**: si cambian, los datos cifrados y las sesiones se rompen), `CAP_AWS_ACCESS_KEY`, `CAP_AWS_SECRET_KEY`, `CAP_AWS_BUCKET` (`capso`), `CAP_AWS_REGION`, `S3_PUBLIC_ENDPOINT` (`https://s3.loom.lab.whitelabel.lat`), `S3_INTERNAL_ENDPOINT` (`http://loom-minio-7q612h:3902`), `S3_PATH_STYLE=true`, `RESEND_API_KEY`, `RESEND_FROM_DOMAIN`, `OPENAI_API_KEY`, `ASSEMBLY_API_KEY`, `MEDIA_SERVER_URL` (`http://loom-mediaserver-wtljt9:3456`), `MEDIA_SERVER_WEBHOOK_URL` (`http://loom-capweb-qcmdip:3000`), `MEDIA_SERVER_WEBHOOK_SECRET`, `PORT=3000` y `WORKFLOW_LOCAL_DATA_DIR=/app/.workflow-data` (runtime de workflows, ver trampas), `CRON_SECRET` (mismo valor que en el servicio cron), y las cinco del fork (tabla de arriba).
+- **cron**: `CAP_WEB_URL=http://loom-capweb-qcmdip:3000`, `CRON_SECRET` (aleatorio de 64 hex, `openssl rand -hex 32`; idéntico al de cap-web, si difiere todas las llamadas dan 401).
 - **media-server**: `PORT=3456`, `MEDIA_SERVER_WEBHOOK_SECRET` (mismo valor que en cap-web; si falta o difiere, el media-server rechaza todo), `MEDIA_SERVER_WEB_ORIGIN=https://loom.lab.whitelabel.lat`.
 - **minio**: `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD` (copiadas del stack viejo).
 - `DEEPGRAM_API_KEY` ya no se lee (upstream pasó a AssemblyAI) y no se configuró.
@@ -156,14 +194,17 @@ Leyenda: OK = funciona con el entorno actual; MS = necesita el media-server; env
 | Facturación, planes Pro | no aplica | autoalojado ya es Pro sin límites (`userIsPro`, `/api/desktop/plan` devuelve `upgraded: true`, verificado) |
 | SSO SAML/WorkOS | env | `WORKOS_*`; no necesario |
 | Workflows en segundo plano (`workflow` 4.6: transcribir, IA, procesar, editar, etc.) | OK (verificado en producción 2026-10-14) | corren dentro del propio cap-web con el "world" local (es lo que hace upstream: su `docker-compose.yml` no define nada). Necesita `/app/.workflow-data` escribible (Dockerfile del fork) y, para no perder trabajos en un redeploy, el volumen montado ahí. El world local reencola al arrancar las ejecuciones pendientes que encuentra en ese directorio |
-| Crons de recuperación (`/api/cron/*`) | X por ahora | en Vercel los llama `vercel.json`; autoalojado nadie los llama. Requieren `CRON_SECRET`. Sin ellos no se reintentan solos los procesamientos/transcripciones atascados (se puede reintentar a mano desde la UI) |
+| Crons de recuperación (`/api/cron/*`) | OK en producción (2026-10-14, servicio `loom-cron-tyvzw2`) | `CRON_SECRET` en cap-web y en el servicio cron. `sync-loops` no se programa (Loops.so, solo Cap cloud). Ver "Crons" |
+| Miniatura y GIF animado de las tarjetas (`/api/video/preview`) | OK (los 13 videos con objeto en MinIO los tienen desde 2026-10-14) | media-server; los videos nuevos los generan en `process-video` |
+| Panel de admin "Reprocess video" (`/admin/reprocess-video`) | X | solo existe con `NEXT_PUBLIC_IS_CAP=true` y para `MESSENGER_ADMIN_EMAIL`; además re-codifica `result.mp4`. Usar `scripts/whitelabel/regenerate-previews.mjs` |
 
 ## Trampas conocidas
 
 - **Workflows y permisos**: Workflow DevKit (world local) guarda su estado en `<cwd>/.workflow-data` (`/app`). En la imagen de upstream `/app` es de root y el servidor corre como `nextjs`: `start()` fallaba con EACCES y ningún workflow arrancaba (transcripción, IA, procesado, ediciones). Lo arregla el `Dockerfile` del fork. Si se cambia el volumen, el directorio de la imagen debe existir con dueño `nextjs` antes de montar uno vacío (Docker copia el dueño). El volumen crece con cada ejecución (`runs/`, `steps/`, `events/`); revisar su tamaño de vez en cuando.
 - **Filas viejas en `video_uploads`**: las subidas web de la versión vieja dejaban la fila al terminar (`phase='uploading'`, `uploaded=total`, `mode` NULL). La versión actual considera cualquier fila como subida en curso, y la página `/s/<id>`, `getVideoStatus` y `transcribeVideo` no arrancan la transcripción. Se borraron las 13 con `scripts/whitelabel/clear-stale-uploads.sql` el 2026-10-14. Si se importa otra base vieja, correr ese script.
-- **Errores `S3Error ... 404` en los logs de cap-web**: son `HEAD .../preview/animated-preview.gif` (la ruta `/api/video/preview`, al pasar el ratón por las tarjetas) de los videos viejos, que nunca pasaron por el media-server y no tienen GIF (5 tampoco tienen miniatura). El error se registra aunque la ruta lo maneja y responde 404. No es un fallo de configuración: el resto de lecturas (path style, bucket `capso`, endpoint interno) responden 200. Durante una edición aparecen unos pocos más mientras se crea `source/original.mp4`. Para generar GIF/miniatura de los viejos habría que reprocesarlos (admin reprocess).
-- **Borrar un video deja su fila en `shared_videos`** (`VideosRepo.delete` de upstream no la borra; con el auto-compartido del fork todos los videos tienen una). Inofensivo, pero queda huérfana.
+- **Errores `S3Error ... 404` en los logs de cap-web**: eran `HEAD .../preview/animated-preview.gif` (la ruta `/api/video/preview`, al pasar el ratón por las tarjetas) de los videos viejos, que nunca pasaron por el media-server y no tenían GIF (8 tampoco miniatura). Resuelto el 2026-10-14 con `regenerate-previews.mjs`. Si vuelven a salir, ver de qué video son: un video importado de otra base o uno cuyo GIF falló (el media-server solo registra un aviso si falla el GIF). Durante una edición aparecen unos pocos mientras se crea `source/original.mp4`; eso es normal.
+- **Borrar un video dejaba su fila en `shared_videos`** (`VideosRepo.delete` de upstream no la borraba; con el auto-compartido del fork todos los videos tienen una). Arreglado en el fork; `clean-orphan-shares.sql` limpia las que hubiera (el 2026-10-14 había 0). En cada merge de upstream revisar que `VideosRepo.delete` siga borrando esas tablas (el test lo detecta).
+- **Crons**: `recover-failed-video-processing` solo mira videos creados en las últimas 48 h (y atascados más de 1 h); no toca los viejos. `finalize-stale-desktop-segments` responde **503** (no es un fallo del cron) cuando `getDesktopRecordingHealth` ve trabajos de grabación de escritorio atascados: el log del servicio cron mostrará `HTTP 503` con el detalle en JSON. Para rotar `CRON_SECRET` hay que cambiarlo en los dos servicios y redesplegar ambos.
 
 - **Acceso a la organización compartida**: solo entran solos los usuarios nuevos con un dominio de `CAP_DEFAULT_ORG_EMAIL_DOMAINS` (con rol `CAP_DEFAULT_ORG_ROLE`, en producción `admin`: ven todos los videos). Cualquier otra persona (por ejemplo una cuenta de gmail) necesita una invitación de la organización: `provisionOrganizationInvitee` crea el usuario y su membresía al invitar, así que al iniciar sesión `createUser` ya lo encuentra y no pasa por `joinDefaultOrganization`. El registro es abierto: quien no tenga dominio permitido ni invitación se crea su propia organización personal y no ve nada nuestro. Para cerrar el registro, usar además `CAP_ALLOWED_SIGNUP_DOMAINS` (solo se aplica a correos sin usuario creado; los invitados de otros dominios ya existen al invitarlos y pueden entrar igual).
 - **Los miembros quitados no vuelven a entrar solos**: si un admin quita a alguien de la organización compartida, ni el login ni la app de escritorio lo vuelven a añadir (la app de escritorio le crea una organización personal vacía). Para devolverle acceso hay que invitarlo de nuevo.
