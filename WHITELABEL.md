@@ -1,6 +1,6 @@
 # Cap Whitelabel: fork y despliegue
 
-Estado al 2026-10-14 (fase 2 hecha: desplegado en Dokploy `vanguardistas`, ver "Producción").
+Estado al 2026-10-14 (fase 2 hecha: desplegado en Dokploy `vanguardistas`, ver "Producción"; workflows, transcripción e IA funcionando).
 
 ## Qué es este repo
 
@@ -21,6 +21,8 @@ Objetivo: una sola organización para todo el equipo, todos los videos visibles 
 | Cada video nuevo se comparte con su organización (fila en `shared_videos`) | `packages/database/auto-share.ts`, llamado tras cada inserción en `videos` | `CAP_AUTO_SHARE_TO_ORG=true` |
 | Videos privados por defecto | sin código nuestro: `CAP_VIDEOS_DEFAULT_PUBLIC=false` (y `organizations.defaultVideoVisibility='private'`, lo fija el script de fusión) | variable de entorno |
 | Script que fusiona las organizaciones personales ya existentes | `scripts/whitelabel/merge-orgs.sql` | manual, una vez (ver abajo) |
+| Directorio de datos de Workflow DevKit escribible en la imagen (`/app/.workflow-data`, dueño `nextjs`) | `apps/web/Dockerfile` (test `__tests__/unit/dockerfile-workflow-data.test.ts`) | siempre; en producción además va en un volumen |
+| Script que borra filas viejas de `video_uploads` de subidas ya terminadas | `scripts/whitelabel/clear-stale-uploads.sql` | manual, una vez (ver trampas) |
 
 Detalles:
 
@@ -84,7 +86,7 @@ git grep "whitelabel fork"     # revisar que nuestros cambios sigan
 | S3 público | https://s3.loom.lab.whitelabel.lat (MinIO, bucket `capso`) |
 | Servidor | `ssh vanguardistas` (177.7.42.143), Dokploy v0.30.8 |
 | Dokploy | org `W Lab` → proyecto `Loom` → env `production` |
-| cap-web | application `loom-capweb-qcmdip`: git `https://github.com/whitelabel-lat/cap.git` rama `main`, Dockerfile `apps/web/Dockerfile`, contexto `.`, puerto 3000. Corre las migraciones al arrancar |
+| cap-web | application `loom-capweb-qcmdip`: git `https://github.com/whitelabel-lat/cap.git` rama `main`, Dockerfile `apps/web/Dockerfile`, contexto `.`, puerto 3000. Corre las migraciones al arrancar. Volumen `loom-capweb-qcmdip-workflow` → `/app/.workflow-data` (estado de los workflows) |
 | media-server | application `loom-mediaserver-wtljt9`: mismo repo, Dockerfile `apps/media-server/Dockerfile.standalone`, contexto `apps/media-server`, puerto 3456, sin dominio (solo red interna). watchPaths `apps/media-server/**` |
 | MinIO | application `loom-minio-7q612h`: imagen `pgsty/minio:RELEASE.2026-08-04T00-00-00Z@sha256:b6bf…` (la misma que usa el `docker-compose.yml` de upstream; `quay.io/minio/minio` ya no se puede descargar), args `server /data --address :3902 --console-address :3903`, volumen `loom-minio-7q612h-data` → `/data` |
 | MySQL | servicio mysql nativo `loom-mysql-okdbu1` (`mysql:8.0`, collation por defecto `utf8mb4_0900_ai_ci`, `--max_connections=1000`), base `planetscale`, usuario `root`, volumen `loom-mysql-okdbu1-data` → `/var/lib/mysql` |
@@ -104,6 +106,7 @@ Notas de la migración (2026-10-14):
 | `planetscale-20261014-0217-pre.sql` + `minio-data-20261014-0217-pre.tgz` | antes de todo (stack viejo, esquema 0000-0010) |
 | `planetscale-20261014-0230-cutover.sql` | volcado final del stack viejo en el corte (el que se importó) |
 | `planetscale-20261014-post-merge.sql` | base nueva tras migraciones y fusión de organizaciones |
+| `planetscale-20261014-0253-pre-workflows.sql` | antes de arreglar los workflows y borrar las filas viejas de `video_uploads` |
 | `rollback-old-domains.sql` | filas `domain` originales del compose viejo |
 
 Respaldo nuevo antes de cada push que traiga migraciones:
@@ -119,7 +122,7 @@ ssh vanguardistas 'TS=$(date +%Y%m%d-%H%M); M=$(docker ps -q -f name=loom-mysql-
 
 ## Variables en producción (pestaña Environment de cada servicio en Dokploy; solo nombres)
 
-- **cap-web**: `NODE_ENV`, `WEB_URL`, `NEXTAUTH_URL` (`https://loom.lab.whitelabel.lat`), `DATABASE_URL` (`mysql://root:…@loom-mysql-okdbu1:3306/planetscale?ssl={"rejectUnauthorized":false}`), `DATABASE_ENCRYPTION_KEY` y `NEXTAUTH_SECRET` (**idénticos a los del stack viejo**: si cambian, los datos cifrados y las sesiones se rompen), `CAP_AWS_ACCESS_KEY`, `CAP_AWS_SECRET_KEY`, `CAP_AWS_BUCKET` (`capso`), `CAP_AWS_REGION`, `S3_PUBLIC_ENDPOINT` (`https://s3.loom.lab.whitelabel.lat`), `S3_INTERNAL_ENDPOINT` (`http://loom-minio-7q612h:3902`), `S3_PATH_STYLE=true`, `RESEND_API_KEY`, `RESEND_FROM_DOMAIN`, `OPENAI_API_KEY`, `ASSEMBLY_API_KEY`, `MEDIA_SERVER_URL` (`http://loom-mediaserver-wtljt9:3456`), `MEDIA_SERVER_WEBHOOK_URL` (`http://loom-capweb-qcmdip:3000`), `MEDIA_SERVER_WEBHOOK_SECRET`, y las cinco del fork (tabla de arriba).
+- **cap-web**: `NODE_ENV`, `WEB_URL`, `NEXTAUTH_URL` (`https://loom.lab.whitelabel.lat`), `DATABASE_URL` (`mysql://root:…@loom-mysql-okdbu1:3306/planetscale?ssl={"rejectUnauthorized":false}`), `DATABASE_ENCRYPTION_KEY` y `NEXTAUTH_SECRET` (**idénticos a los del stack viejo**: si cambian, los datos cifrados y las sesiones se rompen), `CAP_AWS_ACCESS_KEY`, `CAP_AWS_SECRET_KEY`, `CAP_AWS_BUCKET` (`capso`), `CAP_AWS_REGION`, `S3_PUBLIC_ENDPOINT` (`https://s3.loom.lab.whitelabel.lat`), `S3_INTERNAL_ENDPOINT` (`http://loom-minio-7q612h:3902`), `S3_PATH_STYLE=true`, `RESEND_API_KEY`, `RESEND_FROM_DOMAIN`, `OPENAI_API_KEY`, `ASSEMBLY_API_KEY`, `MEDIA_SERVER_URL` (`http://loom-mediaserver-wtljt9:3456`), `MEDIA_SERVER_WEBHOOK_URL` (`http://loom-capweb-qcmdip:3000`), `MEDIA_SERVER_WEBHOOK_SECRET`, `PORT=3000` y `WORKFLOW_LOCAL_DATA_DIR=/app/.workflow-data` (runtime de workflows, ver trampas), y las cinco del fork (tabla de arriba).
 - **media-server**: `PORT=3456`, `MEDIA_SERVER_WEBHOOK_SECRET` (mismo valor que en cap-web; si falta o difiere, el media-server rechaza todo), `MEDIA_SERVER_WEB_ORIGIN=https://loom.lab.whitelabel.lat`.
 - **minio**: `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD` (copiadas del stack viejo).
 - `DEEPGRAM_API_KEY` ya no se lee (upstream pasó a AssemblyAI) y no se configuró.
@@ -135,13 +138,13 @@ Leyenda: OK = funciona con el entorno actual; MS = necesita el media-server; env
 | Reproducción, página `/s/<id>`, embed | OK (verificado con un video real y uno sintético) | S3 accesible desde el navegador (`S3_PUBLIC_ENDPOINT`) |
 | Grabación instantánea desde la app de escritorio (MP4) | OK (API verificada: crear video, subir por URL prefirmada) | nada extra |
 | Grabación por segmentos (modo "studio"/HLS), verificación y unión de segmentos | MS | `MEDIA_SERVER_URL`, `MEDIA_SERVER_WEBHOOK_SECRET`, `MEDIA_SERVER_WEBHOOK_URL`. Sin media-server la fuente se conserva pero la salida queda diferida (`media-server-unconfigured`) |
-| Subida web de MP4 / grabador del navegador | MS | igual; `process-video` falla con `MEDIA_SERVER_URL is not configured` |
-| Edición y recorte de video (save-edits, edit-video), miniaturas, previsualizaciones, conversión | MS | igual (rutas `/video/edit`, `/video/thumbnail`, `/video/convert`) |
+| Subida web de MP4 / grabador del navegador | OK en producción (2026-10-14: subida `raw-upload.mp4` → process-video → `result.mp4`, miniatura, GIF y transcripción) | igual; `process-video` falla con `MEDIA_SERVER_URL is not configured` |
+| Edición y recorte de video (save-edits, edit-video), miniaturas, previsualizaciones, conversión | OK en producción (2026-10-14: recorte 8 s → 5,26 s con un video sintético, `source/original.mp4` + `result.mp4` nuevo) | igual (rutas `/video/edit`, `/video/thumbnail`, `/video/convert`) |
 | Importar desde Loom | MS | igual |
 | Mejora de audio | MS + Replicate | `REPLICATE_API_TOKEN` (de pago); opcional |
-| Transcripción y subtítulos | env | `ASSEMBLY_API_KEY` (AssemblyAI). `DEEPGRAM_API_KEY` ya no se usa. La extracción de audio usa el media-server si existe y, si no, ffmpeg-static local |
+| Transcripción y subtítulos | OK en producción (2026-10-14: los 13 videos COMPLETE, `transcription.vtt` en MinIO) | `ASSEMBLY_API_KEY` (AssemblyAI). `DEEPGRAM_API_KEY` ya no se usa. La extracción de audio usa el media-server si existe y, si no, ffmpeg-static local |
 | Transcripción en vivo (live-transcribe) | env | `ASSEMBLY_API_KEY` y grabación por segmentos (MS) |
-| Resumen, capítulos y título con IA | env | `OPENAI_API_KEY` (se detecta solo; modelo `gpt-4o-mini`) o Groq/Anthropic/`AI_BASE_URL`; necesita la transcripción, es decir también `ASSEMBLY_API_KEY` |
+| Resumen, capítulos y título con IA | OK en producción (`metadata.aiTitle`, `summary`, `chapters`; los videos cortos pueden quedar con 0 capítulos) | `OPENAI_API_KEY` (se detecta solo; modelo `gpt-4o-mini`) o Groq/Anthropic/`AI_BASE_URL`; necesita la transcripción, es decir también `ASSEMBLY_API_KEY` |
 | Chat IA, Ask AI de la documentación | env | `ANTHROPIC_API_KEY` u `OPENAI_API_KEY` |
 | Comentarios y reacciones | OK (4 comentarios migrados) | nada extra |
 | Notificaciones por correo (invitaciones, comentarios) | env | `RESEND_API_KEY`; sin él no se envían, solo hay notificaciones en la app |
@@ -152,9 +155,15 @@ Leyenda: OK = funciona con el entorno actual; MS = necesita el media-server; env
 | Enlaces cortos (Dub) | env, no necesario | `DUB_API_KEY`; solo se usa en la API pública |
 | Facturación, planes Pro | no aplica | autoalojado ya es Pro sin límites (`userIsPro`, `/api/desktop/plan` devuelve `upgraded: true`, verificado) |
 | SSO SAML/WorkOS | env | `WORKOS_*`; no necesario |
-| Workflows en segundo plano (`workflow` 4.6: transcribir, procesar, editar, etc.) | OK | corren dentro del propio cap-web con el "world" local; sin servicio extra. Un reinicio del contenedor a mitad de un trabajo puede dejarlo a medias (hay recuperación en `video-pipeline-recovery`) |
+| Workflows en segundo plano (`workflow` 4.6: transcribir, IA, procesar, editar, etc.) | OK (verificado en producción 2026-10-14) | corren dentro del propio cap-web con el "world" local (es lo que hace upstream: su `docker-compose.yml` no define nada). Necesita `/app/.workflow-data` escribible (Dockerfile del fork) y, para no perder trabajos en un redeploy, el volumen montado ahí. El world local reencola al arrancar las ejecuciones pendientes que encuentra en ese directorio |
+| Crons de recuperación (`/api/cron/*`) | X por ahora | en Vercel los llama `vercel.json`; autoalojado nadie los llama. Requieren `CRON_SECRET`. Sin ellos no se reintentan solos los procesamientos/transcripciones atascados (se puede reintentar a mano desde la UI) |
 
 ## Trampas conocidas
+
+- **Workflows y permisos**: Workflow DevKit (world local) guarda su estado en `<cwd>/.workflow-data` (`/app`). En la imagen de upstream `/app` es de root y el servidor corre como `nextjs`: `start()` fallaba con EACCES y ningún workflow arrancaba (transcripción, IA, procesado, ediciones). Lo arregla el `Dockerfile` del fork. Si se cambia el volumen, el directorio de la imagen debe existir con dueño `nextjs` antes de montar uno vacío (Docker copia el dueño). El volumen crece con cada ejecución (`runs/`, `steps/`, `events/`); revisar su tamaño de vez en cuando.
+- **Filas viejas en `video_uploads`**: las subidas web de la versión vieja dejaban la fila al terminar (`phase='uploading'`, `uploaded=total`, `mode` NULL). La versión actual considera cualquier fila como subida en curso, y la página `/s/<id>`, `getVideoStatus` y `transcribeVideo` no arrancan la transcripción. Se borraron las 13 con `scripts/whitelabel/clear-stale-uploads.sql` el 2026-10-14. Si se importa otra base vieja, correr ese script.
+- **Errores `S3Error ... 404` en los logs de cap-web**: son `HEAD .../preview/animated-preview.gif` (la ruta `/api/video/preview`, al pasar el ratón por las tarjetas) de los videos viejos, que nunca pasaron por el media-server y no tienen GIF (5 tampoco tienen miniatura). El error se registra aunque la ruta lo maneja y responde 404. No es un fallo de configuración: el resto de lecturas (path style, bucket `capso`, endpoint interno) responden 200. Durante una edición aparecen unos pocos más mientras se crea `source/original.mp4`. Para generar GIF/miniatura de los viejos habría que reprocesarlos (admin reprocess).
+- **Borrar un video deja su fila en `shared_videos`** (`VideosRepo.delete` de upstream no la borra; con el auto-compartido del fork todos los videos tienen una). Inofensivo, pero queda huérfana.
 
 - **Acceso a la organización compartida**: solo entran solos los usuarios nuevos con un dominio de `CAP_DEFAULT_ORG_EMAIL_DOMAINS` (con rol `CAP_DEFAULT_ORG_ROLE`, en producción `admin`: ven todos los videos). Cualquier otra persona (por ejemplo una cuenta de gmail) necesita una invitación de la organización: `provisionOrganizationInvitee` crea el usuario y su membresía al invitar, así que al iniciar sesión `createUser` ya lo encuentra y no pasa por `joinDefaultOrganization`. El registro es abierto: quien no tenga dominio permitido ni invitación se crea su propia organización personal y no ve nada nuestro. Para cerrar el registro, usar además `CAP_ALLOWED_SIGNUP_DOMAINS` (solo se aplica a correos sin usuario creado; los invitados de otros dominios ya existen al invitarlos y pueden entrar igual).
 - **Los miembros quitados no vuelven a entrar solos**: si un admin quita a alguien de la organización compartida, ni el login ni la app de escritorio lo vuelven a añadir (la app de escritorio le crea una organización personal vacía). Para devolverle acceso hay que invitarlo de nuevo.
