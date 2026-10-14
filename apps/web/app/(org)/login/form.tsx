@@ -98,6 +98,8 @@ export function LoginForm() {
 				return;
 			} else if (error === "SignupBlocked") {
 				return;
+			} else if (error === "SignupRequestReceived") {
+				return;
 			} else if (error === "SsoSessionExpired") {
 				setShowOrgInput(true);
 				return toast.error(

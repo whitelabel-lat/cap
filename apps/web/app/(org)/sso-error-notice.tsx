@@ -34,6 +34,22 @@ export function SsoErrorNotice({
 		);
 	}
 
+	if (error === "SignupRequestReceived") {
+		return (
+			<div
+				role="alert"
+				className="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-900"
+			>
+				<h2 className="mb-2 font-semibold">Recibimos tu solicitud de acceso</h2>
+				<p>
+					Por ahora el registro es solo por invitación. El equipo de Whitelabel
+					revisará tu solicitud y, si la aprueba, recibirás una invitación por
+					correo para crear tu cuenta. Te enviamos un mensaje de confirmación.
+				</p>
+			</div>
+		);
+	}
+
 	if (error !== "SsoMissingProfileAttributes") return null;
 
 	return (

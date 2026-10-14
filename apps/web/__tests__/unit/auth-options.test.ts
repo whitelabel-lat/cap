@@ -26,6 +26,8 @@ const mocks = vi.hoisted(() => ({
 	users: [] as AuthUser[],
 	where: vi.fn(),
 	select: vi.fn(),
+	hasInvite: vi.fn<(...args: unknown[]) => Promise<boolean>>(),
+	notify: vi.fn<(...args: unknown[]) => Promise<void>>(),
 	validate: vi.fn<(...args: unknown[]) => Promise<ValidatedSsoIdentity>>(),
 	provision: vi.fn<(...args: unknown[]) => Promise<void>>(),
 	adapter: vi.fn<
@@ -44,6 +46,7 @@ const env = vi.hoisted(() => ({
 	GOOGLE_CLIENT_ID: "google-client",
 	GOOGLE_CLIENT_SECRET: "google-secret",
 	NEXTAUTH_SECRET: "next-auth-secret",
+	WEB_URL: "https://cap.test",
 	RESEND_API_KEY: undefined,
 	WORKOS_API_KEY: "workos-secret",
 	WORKOS_CLIENT_ID: "workos-client",
@@ -55,6 +58,17 @@ vi.mock("@cap/env", () => ({
 
 vi.mock("@cap/database", () => ({
 	db: () => ({ select: mocks.select }),
+}));
+
+vi.mock("@cap/database/auth/signup-invite", () => ({
+	hasPendingSignupInvite: mocks.hasInvite,
+}));
+
+vi.mock("@cap/database/auth/signup-request", async (importOriginal) => ({
+	...(await importOriginal<
+		typeof import("@cap/database/auth/signup-request")
+	>()),
+	notifySignupRequest: mocks.notify,
 }));
 
 vi.mock("@cap/database/auth/sso", () => ({
@@ -113,6 +127,8 @@ describe("authOptions", () => {
 		env.WORKOS_API_KEY = "workos-secret";
 		env.CAP_ALLOWED_SIGNUP_DOMAINS = undefined;
 		env.CAP_BLOCKED_SIGNUP_DOMAINS = undefined;
+		mocks.hasInvite.mockReset().mockResolvedValue(false);
+		mocks.notify.mockReset().mockResolvedValue(undefined);
 		mocks.validate.mockReset().mockResolvedValue(IDENTITY);
 		mocks.provision.mockReset().mockResolvedValue(undefined);
 		mocks.adapter.mockClear();
@@ -189,7 +205,7 @@ describe("authOptions", () => {
 				user: { id: "u1", email: "Anyone@Blocked.example" },
 				account: { provider: "google", providerAccountId: "g1", type: "oauth" },
 			}),
-		).resolves.toBe("/login?error=SignupBlocked");
+		).resolves.toBe("https://cap.test/login?error=SignupBlocked");
 		await expect(
 			callbacks.signIn({
 				user: { id: "u2", email: "someone@other.example" },
@@ -200,7 +216,7 @@ describe("authOptions", () => {
 				},
 				email: { verificationRequest: true },
 			}),
-		).resolves.toBe("/login?error=SignupBlocked");
+		).resolves.toBe("https://cap.test/login?error=SignupBlocked");
 		await expect(
 			callbacks.signIn({
 				user: { id: "u3", email: "else@other.example" },
@@ -231,6 +247,136 @@ describe("authOptions", () => {
 		await expect(decodeSessionToken({ token, secret })).resolves.toMatchObject({
 			id: "user-1",
 			email: "someone@blocked.example",
+		});
+	});
+
+	describe("CAP_ALLOWED_SIGNUP_DOMAINS", () => {
+		const google = (email: string) => ({
+			user: { id: "new", email },
+			account: {
+				provider: "google",
+				providerAccountId: "g-new",
+				type: "oauth" as const,
+			},
+		});
+
+		beforeEach(() => {
+			env.CAP_ALLOWED_SIGNUP_DOMAINS = "whitelabel.lat";
+		});
+
+		it("lets a new user from an allowed domain in without checking invites", async () => {
+			const callbacks = callbacksFor(authOptions(CONTEXT));
+			await expect(
+				callbacks.signIn(google("Ana@Whitelabel.lat")),
+			).resolves.toBe(true);
+			expect(mocks.hasInvite).not.toHaveBeenCalled();
+		});
+
+		it("lets an external new user in when they hold an invite", async () => {
+			mocks.hasInvite.mockResolvedValue(true);
+			const callbacks = callbacksFor(authOptions(CONTEXT));
+			await expect(callbacks.signIn(google("Ext@Gmail.com"))).resolves.toBe(
+				true,
+			);
+			expect(mocks.hasInvite).toHaveBeenCalledWith(
+				expect.anything(),
+				"ext@gmail.com",
+				"whitelabel.lat",
+			);
+		});
+
+		it("sends an external new user without an invite to the request-received page and notifies once", async () => {
+			const callbacks = callbacksFor(authOptions(CONTEXT));
+			await expect(
+				callbacks.signIn({
+					...google("Ext@gmail.com"),
+					user: { id: "new", email: "Ext@gmail.com", name: "Ana" },
+				}),
+			).resolves.toBe("https://cap.test/login?error=SignupRequestReceived");
+			expect(mocks.notify).toHaveBeenCalledTimes(1);
+			expect(mocks.notify).toHaveBeenCalledWith({
+				email: "ext@gmail.com",
+				name: "Ana",
+				method: "google",
+			});
+		});
+
+		it("reports the email provider as the method on the code request", async () => {
+			const callbacks = callbacksFor(authOptions(CONTEXT));
+			await expect(
+				callbacks.signIn({
+					user: { id: "ext@gmail.com", email: "ext@gmail.com" },
+					account: {
+						provider: "email",
+						providerAccountId: "ext@gmail.com",
+						type: "email",
+					},
+					email: { verificationRequest: true },
+				}),
+			).resolves.toBe("https://cap.test/login?error=SignupRequestReceived");
+			expect(mocks.notify).toHaveBeenCalledWith(
+				expect.objectContaining({ method: "email" }),
+			);
+		});
+
+		it("keeps the refusal when sending the notification fails", async () => {
+			mocks.notify.mockRejectedValue(new Error("resend down"));
+			const callbacks = callbacksFor(authOptions(CONTEXT));
+			await expect(callbacks.signIn(google("ext@gmail.com"))).resolves.toBe(
+				"https://cap.test/login?error=SignupRequestReceived",
+			);
+		});
+
+		it("does not wait for the notification before refusing", async () => {
+			mocks.notify.mockReturnValue(new Promise(() => {}));
+			const callbacks = callbacksFor(authOptions(CONTEXT));
+			await expect(callbacks.signIn(google("ext@gmail.com"))).resolves.toBe(
+				"https://cap.test/login?error=SignupRequestReceived",
+			);
+		});
+
+		it("does not notify for allowed domains, invited emails or existing users", async () => {
+			const callbacks = callbacksFor(authOptions(CONTEXT));
+			await callbacks.signIn(google("ana@whitelabel.lat"));
+			mocks.hasInvite.mockResolvedValue(true);
+			await callbacks.signIn(google("ext@gmail.com"));
+			mocks.hasInvite.mockResolvedValue(false);
+			mocks.users.push({
+				id: "old",
+				email: "old@gmail.com",
+				name: "Old",
+				lastName: null,
+				image: null,
+				authSessionVersion: 0,
+			});
+			await callbacks.signIn(google("old@gmail.com"));
+			expect(mocks.notify).not.toHaveBeenCalled();
+		});
+
+		it("still blocks a blocked domain even with an invite", async () => {
+			env.CAP_BLOCKED_SIGNUP_DOMAINS = "gmail.com";
+			mocks.hasInvite.mockResolvedValue(true);
+			const callbacks = callbacksFor(authOptions(CONTEXT));
+			await expect(callbacks.signIn(google("ext@gmail.com"))).resolves.toBe(
+				"https://cap.test/login?error=SignupBlocked",
+			);
+			expect(mocks.notify).not.toHaveBeenCalled();
+		});
+
+		it("lets an existing user from any domain sign in", async () => {
+			mocks.users.push({
+				id: "old",
+				email: "old@gmail.com",
+				name: "Old",
+				lastName: null,
+				image: null,
+				authSessionVersion: 0,
+			});
+			const callbacks = callbacksFor(authOptions(CONTEXT));
+			await expect(callbacks.signIn(google("old@gmail.com"))).resolves.toBe(
+				true,
+			);
+			expect(mocks.hasInvite).not.toHaveBeenCalled();
 		});
 	});
 

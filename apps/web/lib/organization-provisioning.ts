@@ -1,6 +1,7 @@
 import "server-only";
 
 import { db } from "@cap/database";
+import { assertMayProvisionUser } from "@cap/database/auth/signup-invite";
 import { nanoId } from "@cap/database/helpers";
 import { enqueueLoopsSync } from "@cap/database/loops/queue";
 import {
@@ -68,6 +69,11 @@ export async function provisionOrganizationInvitee({
 				await tx.update(users).set(userUpdate).where(eq(users.id, userId));
 			}
 		} else {
+			// whitelabel fork: an external owner cannot create accounts for outsiders
+			await assertMayProvisionUser(tx, {
+				email: normalizedEmail,
+				actorUserId: invitedByUserId,
+			});
 			await tx.insert(users).values({
 				id: userId,
 				email: normalizedEmail,

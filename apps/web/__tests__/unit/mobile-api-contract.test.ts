@@ -6,10 +6,28 @@ import {
 	User,
 	Video,
 } from "@cap/web-domain";
+import { HttpApiSchema } from "@effect/platform";
 import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
 
 describe("mobile API contract schemas", () => {
+	it("refuses allowlist-blocked email sign-ins with a 403 that carries a code and Spanish message", () => {
+		const error = new Mobile.MobileSignupRequestReceivedError({
+			code: "SignupRequestReceived",
+			message: Mobile.MOBILE_SIGNUP_REQUEST_RECEIVED_MESSAGE,
+		});
+
+		expect(error._tag).toBe("MobileSignupRequestReceived");
+		expect(error.code).toBe("SignupRequestReceived");
+		expect(error.message).toContain("Recibimos tu solicitud de acceso");
+		expect(
+			HttpApiSchema.getStatusError(Mobile.MobileSignupRequestReceivedError),
+		).toBe(403);
+		expect(
+			Object.keys(Mobile.MobileApiContract.groups.mobile.endpoints),
+		).toContain("requestEmailSession");
+	});
+
 	it("enforces the five-minute free recording limit with segment tolerance", () => {
 		expect(
 			Mobile.isMobileRecordingDurationAllowed({

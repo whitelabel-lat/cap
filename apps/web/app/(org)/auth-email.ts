@@ -63,9 +63,12 @@ export async function requestEmailCode({
 		return normalizedEmail;
 	}
 
-	if (response?.error === "SignupBlocked") {
+	if (
+		response?.error === "SignupBlocked" ||
+		response?.error === "SignupRequestReceived"
+	) {
 		const params = new URLSearchParams(window.location.search);
-		params.set("error", "SignupBlocked");
+		params.set("error", response.error);
 		window.location.assign(`${window.location.pathname}?${params.toString()}`);
 		return null;
 	}

@@ -1,6 +1,11 @@
 import crypto from "node:crypto";
 import { authOptions } from "@cap/database/auth/auth-options";
-import { isEmailAllowedForSignup } from "@cap/database/auth/domain-utils";
+import {
+	isEmailAllowedForSignup,
+	isEmailBlockedFromSignup,
+} from "@cap/database/auth/domain-utils";
+import { hasPendingSignupInvite } from "@cap/database/auth/signup-invite";
+import { notifySignupRequest } from "@cap/database/auth/signup-request";
 import { autoShareVideoToOrg } from "@cap/database/auto-share";
 import { hashPassword } from "@cap/database/crypto";
 import { sendEmail } from "@cap/database/emails/config";
@@ -405,7 +410,7 @@ const getMobileThumbnailUrl = Effect.fn("Mobile.getThumbnailUrl")(function* (
 });
 
 const ensureEmailSignInAllowed = Effect.fn("Mobile.ensureEmailSignInAllowed")(
-	function* (email: string) {
+	function* (email: string, options: { notify?: boolean } = {}) {
 		if (!emailPattern.test(email)) {
 			return yield* Effect.fail(new HttpApiError.BadRequest());
 		}
@@ -422,8 +427,28 @@ const ensureEmailSignInAllowed = Effect.fn("Mobile.ensureEmailSignInAllowed")(
 				.limit(1),
 		);
 
-		if (!existingUser && !isEmailAllowedForSignup(email, allowedDomains)) {
+		if (existingUser || isEmailAllowedForSignup(email, allowedDomains)) return;
+
+		// Blocked domains win over invites and stay silent: plain 403, no emails.
+		if (isEmailBlockedFromSignup(email, serverEnv().CAP_BLOCKED_SIGNUP_DOMAINS))
 			return yield* Effect.fail(new HttpApiError.Forbidden());
+
+		// whitelabel fork: an email invited by an allowlisted user may sign up
+		const invited = yield* database.use((db) =>
+			hasPendingSignupInvite(db, email, allowedDomains),
+		);
+		if (!invited) {
+			// Only the code request notifies; the verify step repeats the check.
+			// Fire-and-forget and throttled (see signup-request.ts).
+			if (options.notify) {
+				void notifySignupRequest({ email, method: "mobile" }).catch(() => {});
+			}
+			return yield* Effect.fail(
+				new Mobile.MobileSignupRequestReceivedError({
+					code: "SignupRequestReceived",
+					message: Mobile.MOBILE_SIGNUP_REQUEST_RECEIVED_MESSAGE,
+				}),
+			);
 		}
 	},
 );
@@ -475,7 +500,7 @@ const requestEmailSession = Effect.fn("Mobile.requestEmailSession")(function* (
 	rawEmail: string,
 ) {
 	const email = normalizeEmail(rawEmail);
-	yield* ensureEmailSignInAllowed(email);
+	yield* ensureEmailSignInAllowed(email, { notify: true });
 	yield* ensureAccountDeletionNotPending({ email });
 
 	const code = crypto.randomInt(100000, 1000000).toString();

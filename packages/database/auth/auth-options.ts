@@ -20,6 +20,11 @@ import {
 	isEmailBlockedFromSignup,
 } from "./domain-utils.ts";
 import { DrizzleAdapter } from "./drizzle-adapter.ts";
+import { hasPendingSignupInvite } from "./signup-invite.ts";
+import {
+	notifySignupRequest,
+	signupMethodFromProvider,
+} from "./signup-request.ts";
 import {
 	provisionSsoMembership,
 	type SsoAuthContext,
@@ -242,7 +247,7 @@ export const authOptions = (ssoContext?: SsoAuthContext): NextAuthOptions => {
 					)
 				) {
 					console.warn(`Sign-in blocked for email: ${userEmail}`);
-					return "/login?error=SignupBlocked";
+					return `${serverEnv().WEB_URL}/login?error=SignupBlocked`;
 				}
 
 				const allowedDomains = serverEnv().CAP_ALLOWED_SIGNUP_DOMAINS;
@@ -255,12 +260,21 @@ export const authOptions = (ssoContext?: SsoAuthContext): NextAuthOptions => {
 					.limit(1);
 
 				// Only apply domain restrictions for new users, existing ones can always sign in
+				// whitelabel fork: an email invited by an allowlisted user may sign up
 				if (
 					!existingUser &&
-					!isEmailAllowedForSignup(userEmail, allowedDomains)
+					!isEmailAllowedForSignup(userEmail, allowedDomains) &&
+					!(await hasPendingSignupInvite(db(), userEmail, allowedDomains))
 				) {
 					console.warn(`Signup blocked for email domain: ${userEmail}`);
-					return false;
+					// Fire-and-forget: never delays or changes the refusal (see
+					// signup-request.ts for the throttling).
+					void notifySignupRequest({
+						email: userEmail,
+						name: user?.name,
+						method: signupMethodFromProvider(account?.provider),
+					}).catch(() => {});
+					return `${serverEnv().WEB_URL}/login?error=SignupRequestReceived`;
 				}
 
 				return true;

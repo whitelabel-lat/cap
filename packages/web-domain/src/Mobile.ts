@@ -3,6 +3,7 @@ import {
 	HttpApiEndpoint,
 	HttpApiError,
 	HttpApiGroup,
+	HttpApiSchema,
 	OpenApi,
 } from "@effect/platform";
 import { Schema } from "effect";
@@ -14,6 +15,20 @@ import { SpaceIdOrOrganisationId } from "./Space.ts";
 import { UploadTarget } from "./Storage.ts";
 import { UserId } from "./User.ts";
 import { UploadPhase, VideoId } from "./Video.ts";
+
+export const MOBILE_SIGNUP_REQUEST_RECEIVED_MESSAGE =
+	"Recibimos tu solicitud de acceso. El equipo de Whitelabel la revisará y, si la aprueba, recibirás una invitación por correo.";
+
+// whitelabel fork: same 403 as before for clients that only look at the status,
+// now with a code and a message the app can show.
+export class MobileSignupRequestReceivedError extends Schema.TaggedError<MobileSignupRequestReceivedError>()(
+	"MobileSignupRequestReceived",
+	{
+		code: Schema.Literal("SignupRequestReceived"),
+		message: Schema.String,
+	},
+	HttpApiSchema.annotations({ status: 403 }),
+) {}
 
 const isExpoAuthPath = (pathname: string) => pathname === "/--/auth";
 export const mobileFreeRecordingDurationSeconds = 5 * 60;
@@ -547,6 +562,7 @@ export class MobileHttpApi extends HttpApiGroup.make("mobile")
 			.addError(HttpApiError.InternalServerError)
 			.addError(HttpApiError.BadRequest)
 			.addError(HttpApiError.Forbidden)
+			.addError(MobileSignupRequestReceivedError)
 			.addError(HttpApiError.NotFound),
 	)
 	.add(
@@ -556,6 +572,7 @@ export class MobileHttpApi extends HttpApiGroup.make("mobile")
 			.addError(HttpApiError.InternalServerError)
 			.addError(HttpApiError.BadRequest)
 			.addError(HttpApiError.Forbidden)
+			.addError(MobileSignupRequestReceivedError)
 			.addError(HttpApiError.NotFound),
 	)
 	.add(

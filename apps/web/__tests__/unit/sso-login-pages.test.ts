@@ -214,6 +214,17 @@ describe.each(["login", "signup"] as const)(
 			expect(markup).not.toContain("SSO profile details are missing");
 		});
 
+		it("tells refused sign-ups their access request was received", async () => {
+			mocks.searchParams.set("error", "SignupRequestReceived");
+
+			const markup = await renderForm();
+
+			expect(markup).toContain('role="alert"');
+			expect(markup).toContain("Recibimos tu solicitud de acceso");
+			expect(markup).toContain("invitación por correo");
+			expect(markup).not.toContain("open source");
+		});
+
 		it.each(["", "SsoSignInFailed", "<script>untrusted error</script>"])(
 			"does not show a missing-profile notice for %j",
 			async (error) => {

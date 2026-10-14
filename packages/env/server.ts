@@ -110,6 +110,12 @@ function createServerEnv() {
 				.string()
 				.optional()
 				.describe("Comma-separated list of permitted signup domains"),
+			CAP_SIGNUP_REQUEST_NOTIFY_EMAIL: z
+				.string()
+				.optional()
+				.describe(
+					"whitelabel fork: address notified when CAP_ALLOWED_SIGNUP_DOMAINS refuses a new person; unset or not a plain email = only the person is emailed (validated at send time so a bad value cannot break boot)",
+				),
 			CAP_BLOCKED_SIGNUP_DOMAINS: z
 				.string()
 				.optional()
