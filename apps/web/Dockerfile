@@ -32,6 +32,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 COPY --from=builder --chown=nextjs:nodejs /app/packages/database/migrations ./apps/web/migrations
 
+# whitelabel fork: Workflow DevKit (local world) stores runs in <cwd>/.workflow-data.
+# /app is root-owned, so create it for nextjs; a volume mounted here inherits the owner.
+RUN mkdir -p /app/.workflow-data && chown nextjs:nodejs /app/.workflow-data
+
 
 USER nextjs
 
