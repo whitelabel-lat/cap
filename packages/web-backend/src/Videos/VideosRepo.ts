@@ -111,6 +111,20 @@ export class VideosRepo extends Effect.Service<VideosRepo>()("VideosRepo", {
 						}
 					}
 					await Promise.all([
+						// whitelabel fork: also remove the rows keyed by the video, as
+						// upstream does in the agent delete operation (deleteCapDatabase).
+						// Every video has a shared_videos row with CAP_AUTO_SHARE_TO_ORG.
+						db
+							.delete(Db.comments)
+							.where(Dz.eq(Db.comments.videoId, id)),
+						db
+							.delete(Db.notifications)
+							.where(Dz.eq(Db.notifications.videoId, id)),
+						db
+							.delete(Db.sharedVideos)
+							.where(Dz.eq(Db.sharedVideos.videoId, id)),
+						db.delete(Db.spaceVideos).where(Dz.eq(Db.spaceVideos.videoId, id)),
+						db.delete(Db.videoEdits).where(Dz.eq(Db.videoEdits.videoId, id)),
 						db.delete(Db.importedVideos).where(Dz.eq(Db.importedVideos.id, id)),
 						db.delete(Db.videos).where(Dz.eq(Db.videos.id, id)),
 						db
