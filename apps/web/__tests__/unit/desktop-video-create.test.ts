@@ -15,6 +15,11 @@ const deletion = vi.hoisted(() => ({
 const defaultSharing = vi.hoisted(() => ({
 	getNewVideoPublic: vi.fn(),
 }));
+// whitelabel fork: the shared default org must never be (re)joined from the
+// desktop zero-org path, even when it would accept the user.
+const defaultOrg = vi.hoisted(() => ({
+	joinDefaultOrganization: vi.fn(async () => null as string | null),
+}));
 
 const schema = {
 	organizations: { table: "organizations" },
@@ -46,6 +51,7 @@ vi.mock("@cap/database", () => ({
 	db: () => mockDb,
 }));
 vi.mock("@cap/database/video-sharing-default", () => defaultSharing);
+vi.mock("@cap/database/auth/default-org", () => defaultOrg);
 
 vi.mock("@cap/database/auth/session", () => ({
 	getCurrentUser: vi.fn(),
@@ -455,6 +461,45 @@ describe("GET /create", () => {
 
 		const body = await response.json();
 		expect(body.id).toBeTruthy();
+	});
+
+	it("does not re-join the shared default org when a removed user has no orgs", async () => {
+		defaultOrg.joinDefaultOrganization.mockResolvedValue("org-shared");
+		mockGetCurrentUser.mockResolvedValue({
+			id: "user-1",
+			email: "removed@whitelabel.lat",
+			defaultOrgId: "org-shared",
+			activeOrganizationId: "org-shared",
+		});
+		mockDb.where
+			.mockResolvedValueOnce([])
+			.mockResolvedValueOnce([])
+			.mockResolvedValueOnce([])
+			.mockResolvedValueOnce([])
+			.mockResolvedValueOnce([{ count: 5 }]);
+
+		const response = await app.request(
+			"https://cap.test/create?orgId=org-shared",
+		);
+
+		expect(response.status).toBe(200);
+		expect(defaultOrg.joinDefaultOrganization).not.toHaveBeenCalled();
+		const orgValues = insertedValues(schema.organizations) as
+			| { id: string; ownerId: string; name: string }
+			| undefined;
+		expect(orgValues).toMatchObject({
+			ownerId: "user-1",
+			name: "My Organization",
+		});
+		expect(insertedValues(schema.organizationMembers)).toMatchObject({
+			userId: "user-1",
+			role: "owner",
+			organizationId: orgValues?.id,
+		});
+		expect(insertedValues(schema.videos)).toMatchObject({
+			orgId: orgValues?.id,
+		});
+		expect(insertedValues(schema.videos)?.orgId).not.toBe("org-shared");
 	});
 
 	it("does not provision when the user already belongs to an org", async () => {
