@@ -68,4 +68,9 @@ describe("whitelabel cron service", () => {
 		expect(dockerfile).toMatch(/^USER (?!root)\S+/m);
 		expect(dockerfile).toMatch(/supercronic/);
 	});
+
+	it("starts supercronic by absolute path (as PID 1 its reaper re-execs argv[0])", () => {
+		const dockerfile = readFileSync(join(cronDir, "Dockerfile"), "utf8");
+		expect(dockerfile).toMatch(/^CMD \["\/usr\/bin\/supercronic"/m);
+	});
 });

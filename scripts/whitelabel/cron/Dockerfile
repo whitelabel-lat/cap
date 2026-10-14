@@ -13,4 +13,4 @@ COPY cap-cron.sh /usr/local/bin/cap-cron
 ENV TZ=UTC
 USER capcron
 
-CMD ["supercronic", "-passthrough-logs", "/etc/cap-cron/crontab"]
+CMD ["/usr/bin/supercronic", "-passthrough-logs", "/etc/cap-cron/crontab"]
