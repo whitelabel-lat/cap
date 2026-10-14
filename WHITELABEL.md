@@ -1,6 +1,6 @@
 # Cap Whitelabel: fork y despliegue
 
-Estado al 2026-10-13 (fase 1: código y pruebas locales; el despliegue es la fase 2).
+Estado al 2026-10-14 (fase 2 hecha: desplegado en Dokploy `vanguardistas`, ver "Producción").
 
 ## Qué es este repo
 
@@ -40,7 +40,7 @@ Nuevas (todas opcionales):
 |---|---|---|
 | `CAP_DEFAULT_ORG_ID` | `p1m68fg1fs7n0a9` | Organización a la que entra todo usuario nuevo de un dominio de `CAP_DEFAULT_ORG_EMAIL_DOMAINS` |
 | `CAP_DEFAULT_ORG_ROLE` | `admin` | Rol del usuario nuevo (`member` o `admin`; por defecto `member`) |
-| `CAP_DEFAULT_ORG_EMAIL_DOMAINS` | `whitelabel.lat` (propuesto; confirmar en la fase 2) | Dominios de correo (separados por comas) que entran solos a `CAP_DEFAULT_ORG_ID`. Vacía o sin definir = nadie entra solo |
+| `CAP_DEFAULT_ORG_EMAIL_DOMAINS` | `whitelabel.lat` | Dominios de correo (separados por comas) que entran solos a `CAP_DEFAULT_ORG_ID`. Vacía o sin definir = nadie entra solo |
 | `CAP_AUTO_SHARE_TO_ORG` | `true` | Comparte cada video nuevo con su organización |
 | `CAP_VIDEOS_DEFAULT_PUBLIC` | `false` | Videos nuevos privados (upstream: `true`) |
 
@@ -76,21 +76,53 @@ git grep "whitelabel fork"     # revisar que nuestros cambios sigan
 4. Sin `RESEND_API_KEY` el código de acceso sale en los logs del contenedor (`🔢 Code:`); no se envían correos.
 5. No poner claves de IA/transcripción en pruebas locales.
 
-## Despliegue y rollback (completar en la fase 2)
+## Producción
 
-- Imagen: construida desde este repo (`apps/web/Dockerfile`). Pendiente: workflow de GitHub Actions o build en Dokploy y registro de imágenes. TODO fase 2.
-- Servicios en el compose de Dokploy `pedro-capso-r3y2en` (server `vanguardistas`): cap-web, ps-mysql, minio. Añadir media-server (`apps/media-server/Dockerfile.standalone`, puerto 3456, ffmpeg incluido). TODO fase 2.
-- Respaldos antes de desplegar: `mysqldump` de `planetscale` y tar del volumen `pedro-capso-r3y2en_minio-data`. TODO fase 2: ruta y nombre.
-- Rollback: volver a `ghcr.io/capsoftware/cap-web:latest` NO sirve tras migrar (el esquema ya es el nuevo): restaurar el dump previo. TODO fase 2.
+| Dato | Valor |
+|---|---|
+| URL | https://loom.lab.whitelabel.lat (videos: `/s/<id>`, mismos enlaces que antes) |
+| S3 público | https://s3.loom.lab.whitelabel.lat (MinIO, bucket `capso`) |
+| Servidor | `ssh vanguardistas` (177.7.42.143), Dokploy v0.30.8 |
+| Dokploy | org `W Lab` → proyecto `Loom` → env `production` |
+| cap-web | application `loom-capweb-qcmdip`: git `https://github.com/whitelabel-lat/cap.git` rama `main`, Dockerfile `apps/web/Dockerfile`, contexto `.`, puerto 3000. Corre las migraciones al arrancar |
+| media-server | application `loom-mediaserver-wtljt9`: mismo repo, Dockerfile `apps/media-server/Dockerfile.standalone`, contexto `apps/media-server`, puerto 3456, sin dominio (solo red interna). watchPaths `apps/media-server/**` |
+| MinIO | application `loom-minio-7q612h`: imagen `pgsty/minio:RELEASE.2026-08-04T00-00-00Z@sha256:b6bf…` (la misma que usa el `docker-compose.yml` de upstream; `quay.io/minio/minio` ya no se puede descargar), args `server /data --address :3902 --console-address :3903`, volumen `loom-minio-7q612h-data` → `/data` |
+| MySQL | servicio mysql nativo `loom-mysql-okdbu1` (`mysql:8.0`, collation por defecto `utf8mb4_0900_ai_ci`, `--max_connections=1000`), base `planetscale`, usuario `root`, volumen `loom-mysql-okdbu1-data` → `/var/lib/mysql` |
+| Auto-deploy | Sí: webhooks de GitHub (push) del repo a `https://deploy.vanguardistas.co/api/deploy/<refreshToken>` para cap-web y media-server. **Push a `main` = despliegue a producción** (cap-web ~5 min de build en el servidor). MinIO y MySQL no se redespliegan solos |
+| Traefik | `/etc/dokploy/traefik/dynamic/loom-capweb-qcmdip.yml` y `loom-minio-7q612h.yml` (escritos a mano en la migración con el formato de Dokploy; si se edita el dominio en la UI, Dokploy los regenera) |
+| Stack viejo | compose `pedro-capso-r3y2en` (W Lab → Pedro, imagen oficial `ghcr.io/capsoftware/cap-web:latest`): **detenido**, contenedores con `restart=no`, `autoDeploy=false`, sin dominios; volúmenes `pedro-capso-r3y2en_ps-mysql` y `pedro-capso-r3y2en_minio-data` intactos. Borrarlo cuando todo esté confirmado |
 
-Variables que necesita cap-web en producción (nombres; "copiar" = mismo valor que el contenedor actual):
+Notas de la migración (2026-10-14):
 
-- Copiar: `DATABASE_URL`, `NEXTAUTH_SECRET`, `DATABASE_ENCRYPTION_KEY`, `WEB_URL`, `NEXTAUTH_URL`, `CAP_AWS_BUCKET`, `CAP_AWS_REGION`, `CAP_AWS_ACCESS_KEY`, `CAP_AWS_SECRET_KEY`, `S3_PUBLIC_ENDPOINT`, `S3_INTERNAL_ENDPOINT`, `RESEND_API_KEY`, `RESEND_FROM_DOMAIN`, `OPENAI_API_KEY`.
-- Añadir `S3_PATH_STYLE=true` si no se hereda (el valor por defecto ya es `true`).
-- Nuevas del fork: las cinco de la tabla de arriba.
-- Media server: `MEDIA_SERVER_URL=http://<servicio>:3456`, `MEDIA_SERVER_WEBHOOK_URL=http://<cap-web>:3000` (URL interna a la que el media-server llama de vuelta), `MEDIA_SERVER_WEBHOOK_SECRET` (el mismo valor en cap-web y en el media-server; si falta, el media-server rechaza todo).
-- Transcripción: `ASSEMBLY_API_KEY` (**`DEEPGRAM_API_KEY` ya no se lee**: upstream lo sustituyó por AssemblyAI).
-- `DEEPGRAM_API_KEY` se puede quitar.
+- El servicio MySQL se creó por SQL y se arrancó con `docker service create` replicando la especificación que usa Dokploy (mismo nombre, volumen, red `dokploy-network`, `dnsrr`); pulsar Deploy en la UI lo actualiza en el sitio sin perder datos.
+- Corte: ~44 s sin servicio. Volcado final del MySQL viejo importado en el nuevo, copia del volumen de MinIO (incluye `.minio.sys`: la clave `CAP_AWS_ACCESS_KEY` es una cuenta de servicio de MinIO, no el root), migraciones 0011→0049 aplicadas (`__drizzle_migrations` = 50) y `merge-orgs.sql` ejecutado: 1 organización, 4 miembros (1 owner + 3 admin), 14 videos, 14 shared_videos, 4 usuarios, 4 comentarios.
+
+## Respaldos (en el servidor, `/root/backups/cap/`, solo root)
+
+| Archivo | Momento |
+|---|---|
+| `planetscale-20261014-0217-pre.sql` + `minio-data-20261014-0217-pre.tgz` | antes de todo (stack viejo, esquema 0000-0010) |
+| `planetscale-20261014-0230-cutover.sql` | volcado final del stack viejo en el corte (el que se importó) |
+| `planetscale-20261014-post-merge.sql` | base nueva tras migraciones y fusión de organizaciones |
+| `rollback-old-domains.sql` | filas `domain` originales del compose viejo |
+
+Respaldo nuevo antes de cada push que traiga migraciones:
+
+```bash
+ssh vanguardistas 'TS=$(date +%Y%m%d-%H%M); M=$(docker ps -q -f name=loom-mysql-okdbu1); docker exec $M sh -c "MYSQL_PWD=\"\$MYSQL_ROOT_PASSWORD\" mysqldump -uroot --single-transaction --routines --triggers --set-gtid-purged=OFF --databases planetscale" > /root/backups/cap/planetscale-$TS.sql; tail -1 /root/backups/cap/planetscale-$TS.sql'
+```
+
+## Rollback
+
+1. Código: revertir el commit en `main` y hacer push (redespliega). Si hubo migraciones, además restaurar el último volcado (MySQL no tiene DDL transaccional: no reintentar una migración a medias).
+2. Emergencia, volver al stack viejo (imagen oficial, esquema viejo): borrar las filas `domain` de `loom-capweb-qcmdip` y `loom-minio-7q612h` y los dos archivos de Traefik; escalar a 0 `loom-capweb-qcmdip`; `docker start pedro-capso-r3y2en-ps-mysql-1 pedro-capso-r3y2en-minio-1 pedro-capso-r3y2en-cap-web-1` (sus labels de Traefik vuelven a reclamar los hosts) y restaurar las filas con `rollback-old-domains.sql`. Los datos creados en el stack nuevo después del corte se pierden en el viejo.
+
+## Variables en producción (pestaña Environment de cada servicio en Dokploy; solo nombres)
+
+- **cap-web**: `NODE_ENV`, `WEB_URL`, `NEXTAUTH_URL` (`https://loom.lab.whitelabel.lat`), `DATABASE_URL` (`mysql://root:…@loom-mysql-okdbu1:3306/planetscale?ssl={"rejectUnauthorized":false}`), `DATABASE_ENCRYPTION_KEY` y `NEXTAUTH_SECRET` (**idénticos a los del stack viejo**: si cambian, los datos cifrados y las sesiones se rompen), `CAP_AWS_ACCESS_KEY`, `CAP_AWS_SECRET_KEY`, `CAP_AWS_BUCKET` (`capso`), `CAP_AWS_REGION`, `S3_PUBLIC_ENDPOINT` (`https://s3.loom.lab.whitelabel.lat`), `S3_INTERNAL_ENDPOINT` (`http://loom-minio-7q612h:3902`), `S3_PATH_STYLE=true`, `RESEND_API_KEY`, `RESEND_FROM_DOMAIN`, `OPENAI_API_KEY`, `ASSEMBLY_API_KEY`, `MEDIA_SERVER_URL` (`http://loom-mediaserver-wtljt9:3456`), `MEDIA_SERVER_WEBHOOK_URL` (`http://loom-capweb-qcmdip:3000`), `MEDIA_SERVER_WEBHOOK_SECRET`, y las cinco del fork (tabla de arriba).
+- **media-server**: `PORT=3456`, `MEDIA_SERVER_WEBHOOK_SECRET` (mismo valor que en cap-web; si falta o difiere, el media-server rechaza todo), `MEDIA_SERVER_WEB_ORIGIN=https://loom.lab.whitelabel.lat`.
+- **minio**: `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD` (copiadas del stack viejo).
+- `DEEPGRAM_API_KEY` ya no se lee (upstream pasó a AssemblyAI) y no se configuró.
 
 ## Matriz de funciones
 
