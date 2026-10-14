@@ -1,0 +1,13 @@
+# whitelabel fork: self-hosted replacement for the crons of apps/web/vercel.json
+# (same paths and schedules, UTC). Kept in sync by
+# apps/web/__tests__/unit/whitelabel-cron-service.test.ts.
+# Skipped on purpose: /api/cron/sync-loops (Loops.so marketing sync of Cap cloud).
+
+# Retry failed web/Loom processing and restart stalled processing, transcription and AI.
+7,22,37,52 * * * * cap-cron /api/cron/recover-failed-video-processing
+
+# Finalize desktop segmented recordings left unfinished; answers 503 when health is degraded.
+*/15 * * * * cap-cron /api/cron/finalize-stale-desktop-segments
+
+# Delete expired agent API / MCP authorization codes, keys and operations.
+17 3 * * * cap-cron /api/cron/cleanup-agent-api
