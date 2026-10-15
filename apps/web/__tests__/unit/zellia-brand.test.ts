@@ -93,6 +93,7 @@ describe("user-facing files", () => {
 	it.each([
 		"app/(org)/dashboard/_components/Navbar/DashboardSearch.tsx",
 		"app/(org)/dashboard/caps/components/EmptyCapState.tsx",
+		"app/(org)/dashboard/caps/components/web-recorder-dialog/HowItWorksPanel.tsx",
 		"app/(org)/dashboard/caps/record/RecordVideoPage.tsx",
 		"app/(org)/onboarding/components/DownloadPage.tsx",
 		"components/UsageButton.tsx",

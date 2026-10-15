@@ -8,7 +8,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, "..", "..", "..");
@@ -173,7 +173,7 @@ raster(
 	wordmarkImg(shapes.wordmark, INK, 720),
 );
 const interFont = (weight, file) =>
-	`@font-face{font-family:"Inter";font-weight:${weight};src:url("file://${join(repoRoot, "apps", "web", "lib", "og", "fonts", file)}")}`;
+	`@font-face{font-family:"Inter";font-weight:${weight};src:url("${pathToFileURL(join(repoRoot, "apps", "web", "lib", "og", "fonts", file)).href}")}`;
 const ogTitle = "Graba, comparte y comenta videos con tu equipo.";
 
 raster(

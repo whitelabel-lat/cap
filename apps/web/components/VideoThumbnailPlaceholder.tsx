@@ -1,4 +1,4 @@
-import { BRAND_COLORS, BRAND_NAME } from "@cap/utils/brand";
+import { BRAND_COLORS } from "@cap/utils/brand";
 import { ZELLIA_ISOTYPE } from "@cap/utils/brand-shapes";
 import clsx from "clsx";
 
@@ -19,8 +19,7 @@ export const VideoThumbnailPlaceholder = ({
 	>
 		<svg
 			viewBox={ZELLIA_ISOTYPE.viewBox}
-			role="img"
-			aria-label={BRAND_NAME}
+			aria-hidden="true"
 			className="w-auto h-[56%]"
 			fill="none"
 		>
@@ -37,14 +36,9 @@ export const VideoThumbnailPlaceholder = ({
 		</svg>
 		<span
 			aria-hidden="true"
-			className="flex absolute bottom-3 left-3 justify-center items-center rounded-full shadow-lg size-9 bg-[#023562] [.dark_&]:bg-[#E6EBEF]"
+			className="flex absolute right-3 bottom-3 justify-center items-center rounded-full shadow-lg size-9 bg-[#023562] [.dark_&]:bg-[#E6EBEF]"
 		>
-			<svg
-				viewBox="0 0 24 24"
-				role="img"
-				aria-label="Play"
-				className="ml-0.5 size-3.5"
-			>
+			<svg viewBox="0 0 24 24" aria-hidden="true" className="ml-0.5 size-3.5">
 				<path d={PLAY_PATH} className="fill-white [.dark_&]:fill-[#023562]" />
 			</svg>
 		</span>
