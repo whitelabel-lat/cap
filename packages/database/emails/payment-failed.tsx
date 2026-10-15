@@ -31,8 +31,8 @@ export function PaymentFailed({
 			<Head />
 			<Preview>
 				{finalAttempt
-					? "Your Zellia Clips Pro subscription will be canceled unless we can collect payment"
-					: "We could not collect your Zellia Clips Pro payment. Your access is unaffected while we retry."}
+					? `Your ${BRAND_NAME} Pro subscription will be canceled unless we can collect payment`
+					: `We could not collect your ${BRAND_NAME} Pro payment. Your access is unaffected while we retry.`}
 			</Preview>
 			<Tailwind>
 				<Body className="mx-auto my-auto bg-gray-1 font-sans">
@@ -47,11 +47,11 @@ export function PaymentFailed({
 						</Section>
 						<Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
 							{finalAttempt
-								? "Last chance to keep Zellia Clips Pro"
+								? `Last chance to keep ${BRAND_NAME} Pro`
 								: "Your payment didn't go through"}
 						</Heading>
 						<Text className="text-sm leading-6 text-black">
-							We tried to charge your card for Zellia Clips Pro but the payment
+							We tried to charge your card for {BRAND_NAME} Pro but the payment
 							failed. This is usually an expired card or a one-off bank decline.
 						</Text>
 						{finalAttempt ? (

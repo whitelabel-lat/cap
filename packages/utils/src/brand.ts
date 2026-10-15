@@ -25,5 +25,7 @@ export const BRAND_LOGO_PATHS = {
 	email: "/logos/zellia/logo-email.png",
 } as const;
 
+export const brandTitle = (title: string) => `${title} | ${BRAND_NAME}`;
+
 export const brandAssetUrl = (baseUrl: string, path: string) =>
 	`${baseUrl.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;

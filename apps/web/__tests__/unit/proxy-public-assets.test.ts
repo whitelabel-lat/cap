@@ -28,6 +28,9 @@ describe("self-hosted proxy and public static assets", () => {
 		"/cap-logo.png",
 		"/cap-icon.svg",
 		"/theme-script.js",
+		"/google.svg",
+		"/rive/main.riv",
+		"/sounds/start-recording.ogg",
 		"/fonts/Inter-Variable-latin.woff2",
 	])("serves %s without redirecting to /login", async (path) => {
 		const response = await run(path);
@@ -35,14 +38,18 @@ describe("self-hosted proxy and public static assets", () => {
 		expect(response.status).toBe(200);
 	});
 
-	it.each(["/x.png", "/pricing", "/logos-evil", "/favicon-evil/x"])(
-		"still redirects %s to /login",
-		async (path) => {
-			const response = await run(path);
-			expect(response.status).toBe(307);
-			expect(new URL(response.headers.get("location") ?? "").pathname).toBe(
-				"/login",
-			);
-		},
-	);
+	it.each([
+		"/x.png",
+		"/pricing",
+		"/logos-evil",
+		"/favicon-evil/x",
+		"/LOGOS/x",
+		"/fonts/../pricing",
+	])("still redirects %s to /login", async (path) => {
+		const response = await run(path);
+		expect(response.status).toBe(307);
+		expect(new URL(response.headers.get("location") ?? "").pathname).toBe(
+			"/login",
+		);
+	});
 });

@@ -109,16 +109,18 @@ describe("user-facing files", () => {
 
 describe("emails and subjects", () => {
 	const emailsDir = join(repoRoot, "packages", "database", "emails");
-	const allowedFiles = new Set(["config.ts", "signed-baa.tsx", "download-link.tsx"]);
+	const allowedFiles = new Set([
+		"config.ts",
+		"signed-baa.tsx",
+		"download-link.tsx",
+	]);
 	const emailFiles = readdirSync(emailsDir).filter(
 		(file) => /\.tsx?$/.test(file) && !allowedFiles.has(file),
 	);
 
 	it.each(emailFiles)("emails/%s does not mention Cap", (file) => {
 		const source = readFileSync(join(emailsDir, file), "utf8");
-		const offending = source
-			.split("\n")
-			.filter((line) => /\bCap\b/.test(line))
+		const offending = source.split("\n").filter((line) => /\bCap\b/.test(line));
 		expect(offending).toEqual([]);
 	});
 
@@ -142,16 +144,22 @@ describe("emails and subjects", () => {
 	it.each([
 		"../../packages/database/auth/auth-options.ts",
 		"app/api/mobile/[...route]/route.ts",
+		"app/api/webhooks/stripe/route.ts",
 		"lib/Notification.ts",
 		"actions/organization/send-invites.ts",
 		"actions/videos/viewer-invites.ts",
 		"app/api/v1/[...route]/route.ts",
 		"app/api/desktop/[...route]/video.ts",
 	])("%s has no Cap in email subjects", (file) => {
-		const offending = read(file)
-			.split("\n")
-			.filter((line) => /subject:/.test(line) && /\bCap\b/.test(line));
-		expect(offending).toEqual([]);
+		expect(read(file)).not.toMatch(
+			/subject:(?:(?!react:)[\s\S]){0,200}?\bCap\b/,
+		);
+	});
+
+	it("names the Cap desktop app in the desktop download subject", () => {
+		const source = read("actions/send-download-link.ts");
+		expect(source).toContain('subject: "Your Cap desktop download links"');
+		expect(source).toContain("marketing: true");
 	});
 
 	it("does not contain broken find-and-replace phrases", () => {
@@ -162,6 +170,7 @@ describe("emails and subjects", () => {
 			expect(source).not.toMatch(
 				/Your video (Verification|Login|Pro)|your video Pro|View Your video/,
 			);
+			expect(source).not.toContain("Zellia Clips Pro");
 		}
 	});
 });

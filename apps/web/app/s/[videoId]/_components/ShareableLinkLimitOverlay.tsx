@@ -1,6 +1,5 @@
 "use client";
 
-import { buildEnv } from "@cap/env";
 import { Button, Logo } from "@cap/ui";
 import { Video } from "@cap/web-domain";
 import clsx from "clsx";
@@ -67,7 +66,7 @@ export function ShareableLinkLimitOverlay({
 						variant="white"
 						size="sm"
 						className="mt-6"
-						href={buildEnv.NEXT_PUBLIC_WEB_URL}
+						href="/"
 						target="_blank"
 					>
 						Record with Zellia Clips

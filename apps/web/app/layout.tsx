@@ -20,16 +20,21 @@ const defaultFont = localFont({
 });
 
 const resolveWebUrl = () => {
-	try {
-		return new URL(serverEnv().WEB_URL || buildEnv.NEXT_PUBLIC_WEB_URL);
-	} catch {
-		return new URL("http://localhost:3000");
+	const candidates = [
+		() => serverEnv().WEB_URL,
+		() => buildEnv.NEXT_PUBLIC_WEB_URL,
+	];
+	for (const candidate of candidates) {
+		try {
+			return new URL(candidate());
+		} catch {}
 	}
+	return undefined;
 };
 
 export const generateMetadata = (): Metadata => {
 	const metadataBase = resolveWebUrl();
-	const webUrl = metadataBase.origin;
+	const webUrl = metadataBase?.origin;
 	return {
 		metadataBase,
 		title: BRAND_NAME,

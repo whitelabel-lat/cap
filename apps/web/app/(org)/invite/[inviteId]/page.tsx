@@ -27,7 +27,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 	}
 
 	return {
-		title: `Join ${invite.organizationName} on Zellia Clips`,
+		title: `Join ${invite.organizationName}`,
 		description: `You've been invited to join ${invite.organizationName} on Zellia Clips.`,
 	};
 }

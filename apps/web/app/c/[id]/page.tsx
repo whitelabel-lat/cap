@@ -1,5 +1,5 @@
-import { BRAND_SOURCE_CODE_URL } from "@cap/utils/brand";
 import { buttonVariants, Logo } from "@cap/ui";
+import { BRAND_SOURCE_CODE_URL, brandTitle } from "@cap/utils/brand";
 import {
 	faArrowLeft,
 	faArrowUpRightFromSquare,
@@ -47,7 +47,7 @@ export async function generateMetadata(
 		`View public videos in ${title} on Zellia Clips.`;
 
 	return {
-		title: `${title} | Collection`,
+		title: brandTitle(`${title} | Collection`),
 		description,
 		robots: "noindex, nofollow",
 	};

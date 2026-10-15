@@ -1,4 +1,4 @@
-const PUBLIC_ASSET_PREFIXES = ["/logos/", "/fonts/"];
+const PUBLIC_ASSET_PREFIXES = ["/logos/", "/fonts/", "/rive/", "/sounds/"];
 
 const PUBLIC_ASSET_PATTERNS = [
 	/^\/favicon(-\d+x\d+)?\.(png|ico)$/,
@@ -14,6 +14,7 @@ const PUBLIC_ASSET_FILES = new Set([
 	"/og.png",
 	"/cap-logo.png",
 	"/cap-icon.svg",
+	"/google.svg",
 	"/theme-script.js",
 ]);
 

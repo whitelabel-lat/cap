@@ -14,6 +14,7 @@ import type { VideoMetadata } from "@cap/database/types";
 import { buildEnv } from "@cap/env";
 import { Logo } from "@cap/ui";
 import { userIsPro } from "@cap/utils";
+import { brandTitle } from "@cap/utils/brand";
 import {
 	ImageUploads,
 	provideOptionalAuth,
@@ -62,13 +63,13 @@ export async function generateMetadata(
 		Effect.catchTags({
 			PolicyDenied: () =>
 				Effect.succeed({
-					title: "This video is private",
+					title: brandTitle("This video is private"),
 					description: "This video is private and cannot be shared.",
 					robots: "noindex, nofollow",
 				}),
 			VerifyVideoPasswordError: () =>
 				Effect.succeed({
-					title: "Password Protected Video",
+					title: brandTitle("Password Protected Video"),
 					description: "This video is password protected.",
 					robots: "noindex, nofollow",
 				}),
