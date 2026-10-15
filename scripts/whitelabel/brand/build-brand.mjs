@@ -153,7 +153,7 @@ execFileSync("ffmpeg", [
 scale("icon-solid.png", 180, join(publicDir, "apple-touch-icon.png"));
 scale("icon-plain.png", 192, join(publicDir, "android-chrome-192x192.png"));
 scale("icon-plain.png", 512, join(publicDir, "android-chrome-512x512.png"));
-scale("icon-solid.png", 150, join(publicDir, "mstile-150x150.png"));
+scale("icon-tight.png", 150, join(publicDir, "mstile-150x150.png"));
 
 const wordmarkImg = (shape, body, widthPx) =>
 	inlineSvg(shape, {
