@@ -3,7 +3,7 @@ import { ImageResponse } from "next/og";
 import { loadOgFonts, OG_MONO } from "@/lib/og/fonts";
 import {
 	Body,
-	BrandIsotypeArt,
+	BrandCaption,
 	BrandWordmark,
 	Headline,
 	MeshFrame,
@@ -11,6 +11,7 @@ import {
 	OG_INK,
 	OG_WIDTH,
 	OgCanvas,
+	OgPlaceholder,
 } from "@/lib/og/template";
 import {
 	coverRect,
@@ -80,7 +81,7 @@ const PlayButton = ({ size }: { size: number }) => (
 	</div>
 );
 
-const LockIcon = ({ size }: { size: number }) => (
+const LockIcon = ({ size, color }: { size: number; color: string }) => (
 	<svg
 		role="img"
 		aria-label="Locked"
@@ -88,7 +89,7 @@ const LockIcon = ({ size }: { size: number }) => (
 		height={size}
 		viewBox="0 0 24 24"
 		fill="none"
-		stroke={OG_INK}
+		stroke={color}
 		strokeWidth="1.7"
 		strokeLinecap="round"
 		strokeLinejoin="round"
@@ -99,7 +100,7 @@ const LockIcon = ({ size }: { size: number }) => (
 	</svg>
 );
 
-const SearchIcon = ({ size }: { size: number }) => (
+const SearchIcon = ({ size, color }: { size: number; color: string }) => (
 	<svg
 		role="img"
 		aria-label="Not found"
@@ -107,7 +108,7 @@ const SearchIcon = ({ size }: { size: number }) => (
 		height={size}
 		viewBox="0 0 24 24"
 		fill="none"
-		stroke={OG_INK}
+		stroke={color}
 		strokeWidth="1.7"
 		strokeLinecap="round"
 		strokeLinejoin="round"
@@ -140,7 +141,7 @@ const ThumbnailImage = ({ thumbnail }: { thumbnail: OgThumbnail }) => {
 	);
 };
 
-const Thumbnail = ({
+export const Thumbnail = ({
 	thumbnail,
 	duration,
 }: {
@@ -162,11 +163,15 @@ const Thumbnail = ({
 				overflow: "hidden",
 				alignItems: "center",
 				justifyContent: "center",
-				background: thumbnail ? "#0B0F17" : BRAND_COLORS.primary,
+				background: "#0B0F17",
 				boxShadow: "0 0 0 1px rgba(17,24,39,0.06)",
 			}}
 		>
-			{thumbnail && <ThumbnailImage thumbnail={thumbnail} />}
+			{thumbnail ? (
+				<ThumbnailImage thumbnail={thumbnail} />
+			) : (
+				<OgPlaceholder width={THUMB_W} height={THUMB_H} />
+			)}
 			{thumbnail && (
 				<div
 					style={{
@@ -181,8 +186,7 @@ const Thumbnail = ({
 					}}
 				/>
 			)}
-			{!thumbnail && <BrandIsotypeArt height={170} light />}
-			<PlayButton size={96} />
+			{thumbnail && <PlayButton size={96} />}
 			{duration != null && duration > 0 && (
 				<div
 					style={{
@@ -283,7 +287,7 @@ const videoLayout = (
 						</div>
 					)}
 				</div>
-				<div style={{ display: "flex", height: 52 }} />
+				<BrandCaption />
 			</div>
 		</OgCanvas>
 	);
@@ -331,21 +335,22 @@ const statusLayout = ({
 						borderRadius: 30,
 						alignItems: "center",
 						justifyContent: "center",
-						background:
-							"linear-gradient(180deg, rgba(255,255,255,0.86) 0%, rgba(236,243,252,0.7) 100%)",
-						border: "1px solid rgba(255,255,255,0.9)",
-						boxShadow:
-							"0 24px 48px -16px rgba(40,72,130,0.35), inset 0 -2px 4px rgba(61,119,194,0.12)",
+						background: BRAND_COLORS.primary,
+						boxShadow: "0 24px 48px -16px rgba(2,53,98,0.55)",
 					}}
 				>
-					{icon === "lock" ? <LockIcon size={48} /> : <SearchIcon size={46} />}
+					{icon === "lock" ? (
+						<LockIcon size={48} color="#ffffff" />
+					) : (
+						<SearchIcon size={46} color="#ffffff" />
+					)}
 				</div>
 				<Headline size={64} lines={2}>
 					{heading}
 				</Headline>
 				<Body size={26}>{subline}</Body>
 			</div>
-			<div style={{ display: "flex", height: 52 }} />
+			<BrandCaption />
 		</div>
 	</OgCanvas>
 );
