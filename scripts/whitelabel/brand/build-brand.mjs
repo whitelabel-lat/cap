@@ -172,12 +172,16 @@ raster(
 	Math.round((720 * shapes.wordmark.box[3]) / shapes.wordmark.box[2]),
 	wordmarkImg(shapes.wordmark, INK, 720),
 );
+const interFont = (weight, file) =>
+	`@font-face{font-family:"Inter";font-weight:${weight};src:url("file://${join(repoRoot, "apps", "web", "lib", "og", "fonts", file)}")}`;
+const ogTitle = "Graba, comparte y comenta videos con tu equipo.";
+
 raster(
 	join(publicDir, "og.png"),
 	1200,
 	630,
-	`<div style="width:1200px;height:630px;background:radial-gradient(120% 120% at 85% 0%,#23527F 0%,${NAVY} 55%,#002041 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;font-family:Inter,system-ui,sans-serif">${wordmarkImg(shapes.wordmarkWhite, "#ffffff", 560)}<div style="color:#E6EBEF;font-size:34px;letter-spacing:.01em">Clips</div></div>`,
-	NAVY.slice(1),
+	`<style>${interFont(400, "Inter-Regular.ttf")}${interFont(500, "Inter-Medium.ttf")}</style><div style="position:relative;width:1200px;height:630px;overflow:hidden;font-family:Inter,sans-serif;color:#111111;background:linear-gradient(135deg,#F5F9FE 0%,#E6EBEF 60%,#AABFD6 140%)"><div style="position:absolute;top:0;left:0;width:1200px;height:10px;background:${NAVY}"></div><div style="position:absolute;left:64px;top:58px">${wordmarkImg(shapes.wordmark, INK, 122)}</div><div style="position:absolute;left:800px;top:70px">${inlineSvg(shapes.isotype, { body: NAVY, style: "height:490px;width:auto;display:block" })}</div><div style="position:absolute;left:64px;top:210px;width:660px;font-size:70px;line-height:1.02;letter-spacing:-2.1px;font-weight:400">${ogTitle}</div><div style="position:absolute;left:64px;bottom:54px;display:flex;align-items:center;gap:12px;font-size:24px;font-weight:500;color:rgba(17,17,17,.74)"><span style="width:12px;height:12px;border-radius:9999px;background:#FC4501"></span>Zellia Clips</div></div>`,
+	"F5F9FE",
 );
 
 rmSync(tmp, { recursive: true, force: true });
