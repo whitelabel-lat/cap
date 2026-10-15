@@ -77,3 +77,6 @@ analysis/
 analysis/plans/
 .ralphy
 tmp/
+
+# Local fork notes, kept out of git
+WHITELABEL.md
