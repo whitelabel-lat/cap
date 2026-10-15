@@ -754,7 +754,7 @@ export const Transcript: React.FC<TranscriptProps> = ({ data, onSeek }) => {
 								onClick={() => handleLanguageChange("original")}
 								className={`w-full px-3 py-1.5 text-left text-xs transition-colors hover:bg-gray-2 ${
 									selectedLanguage === "original"
-										? "font-medium text-blue-500"
+										? "font-medium text-blue-500 dark:text-blue-400"
 										: "text-gray-12"
 								}`}
 								type="button"
@@ -770,7 +770,7 @@ export const Transcript: React.FC<TranscriptProps> = ({ data, onSeek }) => {
 									onClick={() => handleLanguageChange(code)}
 									className={`w-full px-3 py-1.5 text-left text-xs transition-colors hover:bg-gray-2 ${
 										selectedLanguage === code
-											? "font-medium text-blue-500"
+											? "font-medium text-blue-500 dark:text-blue-400"
 											: "text-gray-12"
 									}`}
 									type="button"
@@ -798,7 +798,7 @@ export const Transcript: React.FC<TranscriptProps> = ({ data, onSeek }) => {
 							{isCopying ? (
 								<LoaderCircle className="size-3.5 animate-spin" />
 							) : copyPressed ? (
-								<Check className="size-3.5 text-blue-500" />
+								<Check className="size-3.5 text-blue-500 dark:text-blue-400" />
 							) : (
 								<Copy className="size-3.5" />
 							)}
@@ -848,7 +848,7 @@ export const Transcript: React.FC<TranscriptProps> = ({ data, onSeek }) => {
 							className="inline-flex size-7 items-center justify-center rounded-full text-gray-9 transition hover:bg-gray-3 hover:text-gray-12 disabled:pointer-events-none disabled:opacity-40"
 						>
 							{downloadPressed ? (
-								<Check className="size-3.5 text-blue-500" />
+								<Check className="size-3.5 text-blue-500 dark:text-blue-400" />
 							) : (
 								<Download className="size-3.5" />
 							)}

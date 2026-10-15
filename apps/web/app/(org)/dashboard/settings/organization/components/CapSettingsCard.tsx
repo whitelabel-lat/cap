@@ -360,7 +360,7 @@ const CapSettingsCard = () => {
 										onClick={() => handleLanguageChange(code)}
 										className={`w-full px-3 py-1.5 text-left text-xs hover:bg-gray-2 transition-colors ${
 											selectedLanguage === code
-												? "text-blue-500 font-medium"
+												? "text-blue-500 dark:text-blue-400 font-medium"
 												: "text-gray-12"
 										}`}
 										type="button"

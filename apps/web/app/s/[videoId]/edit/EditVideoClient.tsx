@@ -1792,7 +1792,7 @@ export function EditVideoClient({
 													startClipEdgeDrag(clip.id, "start", isFirst, event)
 												}
 												className={[
-													"absolute inset-y-0 z-20 flex cursor-ew-resize touch-none items-center justify-center bg-blue-500 text-white transition hover:bg-blue-400 active:bg-blue-600",
+													"absolute inset-y-0 z-20 flex cursor-ew-resize touch-none items-center justify-center bg-blue-500 text-white transition hover:bg-blue-600 active:bg-blue-600",
 													isFirst
 														? "w-6 rounded-l-lg shadow-[0_1px_2px_rgba(0,0,0,0.3),0_2px_8px_-1px_rgba(59,130,246,0.55)]"
 														: "rounded-l-md shadow-[0_1px_2px_rgba(0,0,0,0.35)]",
@@ -1831,7 +1831,7 @@ export function EditVideoClient({
 													startClipEdgeDrag(clip.id, "end", isLast, event)
 												}
 												className={[
-													"absolute inset-y-0 z-20 flex -translate-x-full cursor-ew-resize touch-none items-center justify-center bg-blue-500 text-white transition hover:bg-blue-400 active:bg-blue-600",
+													"absolute inset-y-0 z-20 flex -translate-x-full cursor-ew-resize touch-none items-center justify-center bg-blue-500 text-white transition hover:bg-blue-600 active:bg-blue-600",
 													isLast
 														? "w-6 rounded-r-lg shadow-[0_1px_2px_rgba(0,0,0,0.3),0_2px_8px_-1px_rgba(59,130,246,0.55)]"
 														: "rounded-r-md shadow-[0_1px_2px_rgba(0,0,0,0.35)]",

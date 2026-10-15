@@ -417,7 +417,7 @@ export function SignupForm() {
 							Already have an account?{" "}
 							<Link
 								href="/login"
-								className="text-xs font-semibold text-blue-11 hover:text-blue-8"
+								className="text-xs font-semibold text-blue-11 hover:text-blue-12"
 							>
 								Log in here
 							</Link>

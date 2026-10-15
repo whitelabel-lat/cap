@@ -592,7 +592,7 @@ const NormalLogin = ({
 				Don't have an account?{" "}
 				<Link
 					href="/signup"
-					className="text-xs font-semibold text-blue-11 hover:text-blue-8"
+					className="text-xs font-semibold text-blue-11 hover:text-blue-12"
 				>
 					Sign up here
 				</Link>

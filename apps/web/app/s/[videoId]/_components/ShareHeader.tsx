@@ -1,7 +1,6 @@
 "use client";
 
 import { buildEnv, NODE_ENV } from "@cap/env";
-import { BRAND_SOURCE_CODE_URL } from "@cap/utils/brand";
 import {
 	Button,
 	DropdownMenu,
@@ -11,6 +10,7 @@ import {
 	DropdownMenuTrigger,
 	Logo,
 } from "@cap/ui";
+import { BRAND_SOURCE_CODE_URL } from "@cap/utils/brand";
 import type { ViewerSettingKey } from "@cap/web-backend";
 import {
 	faChartSimple,
@@ -1069,7 +1069,7 @@ export const ShareHeader = ({
 								{userIsOwnerAndNotPro && (
 									<button
 										type="button"
-										className="flex items-center mt-2 mb-3 text-sm text-gray-400 duration-200 cursor-pointer hover:text-blue-500"
+										className="flex items-center mt-2 mb-3 text-sm text-gray-400 duration-200 cursor-pointer hover:text-blue-500 dark:hover:text-blue-400"
 										onClick={() => setUpgradeModalOpen(true)}
 									>
 										<Globe2 className="mr-1 w-4 h-4" />
