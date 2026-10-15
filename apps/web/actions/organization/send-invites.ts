@@ -1,5 +1,6 @@
 "use server";
 
+import { BRAND_NAME } from "@cap/utils/brand";
 import { db } from "@cap/database";
 import { getCurrentUser } from "@cap/database/auth/session";
 import { sendEmail } from "@cap/database/emails/config";
@@ -174,7 +175,7 @@ export async function sendOrganizationInvites(
 			const inviteUrl = `${serverEnv().WEB_URL}/invite/${record.id}`;
 			return sendEmail({
 				email: record.email,
-				subject: `Invitation to join ${organization.name} on Cap`,
+				subject: `Invitation to join ${organization.name} on ${BRAND_NAME}`,
 				react: OrganizationInvite({
 					email: record.email,
 					url: inviteUrl,

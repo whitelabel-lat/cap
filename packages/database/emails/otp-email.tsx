@@ -24,7 +24,7 @@ export function OTPEmail({
 	return (
 		<Html>
 			<Head />
-			<Preview>Your video Verification Code: {code}</Preview>
+			<Preview>Your Zellia Clips Verification Code: {code}</Preview>
 			<Tailwind>
 				<Body className="mx-auto my-auto bg-gray-1 font-sans">
 					<Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">

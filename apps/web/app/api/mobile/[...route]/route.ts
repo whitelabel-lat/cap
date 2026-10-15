@@ -1,3 +1,4 @@
+import { BRAND_NAME } from "@cap/utils/brand";
 import crypto from "node:crypto";
 import { authOptions } from "@cap/database/auth/auth-options";
 import {
@@ -175,7 +176,7 @@ const sendMobileEmailCode = async (email: string, code: string) => {
 
 	await sendEmail({
 		email,
-		subject: "Your Cap Verification Code",
+		subject: `Your ${BRAND_NAME} Verification Code`,
 		react: OTPEmail({ code, email }),
 	});
 };

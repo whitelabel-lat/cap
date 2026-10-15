@@ -1,3 +1,4 @@
+import { BRAND_NAME } from "@cap/utils/brand";
 import crypto from "node:crypto";
 import { serverEnv } from "@cap/env";
 import { User } from "@cap/web-domain";
@@ -173,7 +174,7 @@ export const authOptions = (ssoContext?: SsoAuthContext): NextAuthOptions => {
 							const email = OTPEmail({ code: token, email: identifier });
 							await sendEmail({
 								email: identifier,
-								subject: `Your Cap Verification Code`,
+								subject: `Your ${BRAND_NAME} Verification Code`,
 								react: email,
 							});
 						}

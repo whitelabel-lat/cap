@@ -58,7 +58,7 @@ export function FirstView({
 								className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
 								href={url}
 							>
-								View Your video
+								View Your Video
 							</Link>
 						</Section>
 						<Text className="text-sm leading-6 text-black">

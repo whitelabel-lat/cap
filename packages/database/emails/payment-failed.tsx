@@ -31,8 +31,8 @@ export function PaymentFailed({
 			<Head />
 			<Preview>
 				{finalAttempt
-					? "Your video Pro subscription will be canceled unless we can collect payment"
-					: "We could not collect your video Pro payment. Your access is unaffected while we retry."}
+					? "Your Zellia Clips Pro subscription will be canceled unless we can collect payment"
+					: "We could not collect your Zellia Clips Pro payment. Your access is unaffected while we retry."}
 			</Preview>
 			<Tailwind>
 				<Body className="mx-auto my-auto bg-gray-1 font-sans">

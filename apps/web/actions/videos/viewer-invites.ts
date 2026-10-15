@@ -1,5 +1,6 @@
 "use server";
 
+import { BRAND_NAME } from "@cap/utils/brand";
 import { db } from "@cap/database";
 import { getCurrentUser } from "@cap/database/auth/session";
 import { sendEmail } from "@cap/database/emails/config";
@@ -89,7 +90,7 @@ export async function inviteVideoViewer(videoId: Video.VideoId, email: string) {
 	try {
 		const result = await sendEmail({
 			email: normalizedEmail,
-			subject: `Invitation to watch ${video.name} on Cap`,
+			subject: `Invitation to watch ${video.name} on ${BRAND_NAME}`,
 			react: VideoViewerInvite({
 				email: normalizedEmail,
 				videoName: video.name,

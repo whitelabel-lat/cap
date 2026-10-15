@@ -1,5 +1,5 @@
 import { buildEnv, serverEnv } from "@cap/env";
-import { BRAND_LOGO_PATHS, BRAND_NAME, brandAssetUrl } from "@cap/utils/brand";
+import { BRAND_NAME } from "@cap/utils/brand";
 import type { JSXElementConstructor, ReactElement } from "react";
 import { Resend } from "resend";
 
