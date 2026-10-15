@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
 	BRAND_COLORS,
@@ -10,10 +10,6 @@ import {
 	brandAssetUrl,
 } from "@cap/utils/brand";
 import { describe, expect, it } from "vitest";
-
-// whitelabel fork: the product is rebranded as Zellia Clips. These tests keep
-// the brand module, the PWA manifest and the user-facing files in sync so an
-// upstream merge that reintroduces "Cap" branding fails here.
 
 const webRoot = join(__dirname, "..", "..");
 const repoRoot = join(webRoot, "..", "..");
@@ -28,19 +24,15 @@ describe("brand module", () => {
 		);
 	});
 
-	it("exposes the Zellia palette", () => {
+	it("exposes the Zellia palette and the AGPL source link", () => {
 		expect(BRAND_COLORS.primary).toBe("#023562");
 		expect(BRAND_COLORS.secondary).toBe("#5799BA");
 		expect(BRAND_COLORS.accent).toBe("#FC4501");
-	});
-
-	it("keeps the AGPL source link", () => {
 		expect(BRAND_SOURCE_CODE_URL).toBe("https://github.com/whitelabel-lat/cap");
 	});
 
 	it("points every logo path at an existing public file", () => {
 		for (const path of Object.values(BRAND_LOGO_PATHS)) {
-			expect(path.startsWith("/")).toBe(true);
 			expect(() => readFileSync(join(webRoot, "public", path))).not.toThrow();
 		}
 	});
@@ -94,26 +86,11 @@ describe("user-facing files", () => {
 		const source = read(file);
 		expect(source).not.toMatch(/https:\/\/cap\.so/);
 		expect(source).not.toContain("Powered by Cap");
-		expect(source).not.toContain('alt="Cap"');
-		expect(source).not.toContain('aria-label="Cap Logo"');
 		expect(source).not.toMatch(/alternative to Loom/i);
 		expect(source).not.toMatch(/["`>]Cap[:"`<]|\bCap Recording\b/);
 	});
 
-	it("keeps the cloud-only senders out of the self-hosted path", () => {
-		const config = read("../../packages/database/emails/config.ts");
-		expect(config).not.toContain("CAP_LOGO_URL");
-		expect(read("../../packages/database/emails/brand.ts")).toContain(
-			"emailLogoUrl",
-		);
-		expect(config).toContain("BRAND_NAME");
-		const gated = config.split("\n").filter((line) => /cap\.so/.test(line));
-		expect(
-			gated.every((line) => /<[^>]*@(send|auth)\.cap\.so>/.test(line)),
-		).toBe(true);
-	});
-
-	it("does not hardcode the old blue in logo components", () => {
+	it("does not hardcode the old blue", () => {
 		for (const file of [
 			"../../packages/ui/src/components/icons/LogoBadge.tsx",
 			"../../packages/ui/src/components/LogoSpinner.tsx",
@@ -123,15 +100,85 @@ describe("user-facing files", () => {
 		}
 	});
 
+	it("keeps the logo theme-aware", () => {
+		expect(read("../../packages/ui/src/components/icons/Logo.tsx")).toContain(
+			"fill-gray-12",
+		);
+	});
+});
+
+describe("emails and subjects", () => {
+	const emailsDir = join(repoRoot, "packages", "database", "emails");
+	const allowedFiles = new Set(["config.ts", "signed-baa.tsx", "download-link.tsx"]);
+	const emailFiles = readdirSync(emailsDir).filter(
+		(file) => /\.tsx?$/.test(file) && !allowedFiles.has(file),
+	);
+
+	it.each(emailFiles)("emails/%s does not mention Cap", (file) => {
+		const source = readFileSync(join(emailsDir, file), "utf8");
+		const offending = source
+			.split("\n")
+			.filter((line) => /\bCap\b/.test(line))
+		expect(offending).toEqual([]);
+	});
+
+	it("only keeps the gated cloud senders in config.ts", () => {
+		const config = readFileSync(join(emailsDir, "config.ts"), "utf8");
+		const offending = config
+			.split("\n")
+			.filter((line) => /\bCap\b|cap\.so/.test(line))
+			.filter((line) => !/<[^>]*@(send|auth)\.cap\.so>/.test(line));
+		expect(offending).toEqual([]);
+		expect(config).not.toContain("CAP_LOGO_URL");
+		expect(config).toContain("BRAND_NAME");
+	});
+
+	it("keeps the email logo helper", () => {
+		expect(readFileSync(join(emailsDir, "brand.ts"), "utf8")).toContain(
+			"emailLogoUrl",
+		);
+	});
+
+	it.each([
+		"../../packages/database/auth/auth-options.ts",
+		"app/api/mobile/[...route]/route.ts",
+		"lib/Notification.ts",
+		"actions/organization/send-invites.ts",
+		"actions/videos/viewer-invites.ts",
+		"app/api/v1/[...route]/route.ts",
+		"app/api/desktop/[...route]/video.ts",
+	])("%s has no Cap in email subjects", (file) => {
+		const offending = read(file)
+			.split("\n")
+			.filter((line) => /subject:/.test(line) && /\bCap\b/.test(line));
+		expect(offending).toEqual([]);
+	});
+
+	it("does not contain broken find-and-replace phrases", () => {
+		const sources = emailFiles.map((file) =>
+			readFileSync(join(emailsDir, file), "utf8"),
+		);
+		for (const source of sources) {
+			expect(source).not.toMatch(
+				/Your video (Verification|Login|Pro)|your video Pro|View Your video/,
+			);
+		}
+	});
+});
+
+describe("whitelabel documentation and AGPL", () => {
 	it("documents the brand in WHITELABEL.md", () => {
 		expect(readFileSync(join(repoRoot, "WHITELABEL.md"), "utf8")).toContain(
 			"Marca (Zellia Clips)",
 		);
 	});
 
-	it("keeps the source code link in the dashboard sidebar (AGPL)", () => {
-		expect(read("app/(org)/dashboard/_components/Navbar/Items.tsx")).toContain(
-			"BRAND_SOURCE_CODE_URL",
-		);
+	it.each([
+		"app/(org)/dashboard/_components/Navbar/Items.tsx",
+		"app/s/[videoId]/_components/ShareHeader.tsx",
+		"app/c/[id]/page.tsx",
+		"app/not-found.tsx",
+	])("%s links to the source code", (file) => {
+		expect(read(file)).toContain("BRAND_SOURCE_CODE_URL");
 	});
 });

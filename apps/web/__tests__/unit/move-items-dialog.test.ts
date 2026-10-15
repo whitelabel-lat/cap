@@ -47,7 +47,7 @@ const folderId = Folder.FolderId.make("team-folder");
 beforeEach(() => {
 	vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
 	mocks.destinations.mockResolvedValue([
-		{ name: "My Caps", location: { type: "personal" }, folders: [] },
+		{ name: "My Videos", location: { type: "personal" }, folders: [] },
 		{
 			name: "All team members",
 			location: { type: "organization" },
@@ -85,7 +85,7 @@ async function render(
 					open: true,
 					onOpenChange: mocks.close,
 					location: { type: "personal" },
-					rootLabel: "My Caps",
+					rootLabel: "My Videos",
 					organizationId,
 					item,
 				}),
