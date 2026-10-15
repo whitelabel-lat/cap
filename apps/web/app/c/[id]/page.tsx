@@ -1,4 +1,4 @@
-import { buildEnv } from "@cap/env";
+import { BRAND_SOURCE_CODE_URL } from "@cap/utils/brand";
 import { buttonVariants, Logo } from "@cap/ui";
 import {
 	faArrowLeft,
@@ -419,19 +419,27 @@ function PublicFolderCard({
 }
 
 function CollectionFooter({ showPoweredBy }: { showPoweredBy: boolean }) {
-	if (!showPoweredBy) return null;
-
 	return (
 		<footer className="mt-16 border-t border-gray-4">
-			<div className="flex justify-center items-center px-4 mx-auto max-w-7xl h-16 sm:px-6 lg:px-8">
+			<div className="flex gap-6 justify-center items-center px-4 mx-auto max-w-7xl h-16 sm:px-6 lg:px-8">
+				{showPoweredBy && (
+					<a
+						href="/?ref=collection"
+						target="_blank"
+						rel="noreferrer"
+						className="inline-flex gap-1.5 items-center text-xs transition-colors text-gray-9 hover:text-gray-11"
+					>
+						Powered by
+						<Logo className="w-auto h-3.5" />
+					</a>
+				)}
 				<a
-					href={`${buildEnv.NEXT_PUBLIC_WEB_URL}/?ref=collection`}
+					href={BRAND_SOURCE_CODE_URL}
 					target="_blank"
-					rel="noreferrer"
-					className="inline-flex gap-1.5 items-center text-xs transition-colors text-gray-9 hover:text-gray-11"
+					rel="noopener noreferrer"
+					className="text-xs transition-colors text-gray-9 hover:text-gray-11"
 				>
-					Powered by
-					<Logo className="w-auto h-3.5" />
+					Código fuente
 				</a>
 			</div>
 		</footer>

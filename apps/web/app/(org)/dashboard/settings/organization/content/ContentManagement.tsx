@@ -403,7 +403,7 @@ export function ContentManagement({
 						) : preview ? (
 							<div className="flex flex-col gap-4">
 								<div className="flex gap-3 items-start">
-									<ShieldCheck className="mt-0.5 shrink-0 size-5 text-blue-10" />
+									<ShieldCheck className="mt-0.5 shrink-0 size-5 text-blue-11" />
 									<div className="min-w-0">
 										<p className="text-sm font-medium text-gray-12">
 											{preview.sourceFolderPath} to {preview.target.email}

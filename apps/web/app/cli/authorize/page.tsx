@@ -19,7 +19,7 @@ type AuthorizeSearchParams = Record<string, string | string[] | undefined>;
 const scopeDescriptions: Record<string, string> = {
 	"caps:read": "Read videos, transcripts, and activity",
 	"caps:comment": "Post comments and reactions",
-	"caps:write": "Change Video titles, visibility, and settings",
+	"caps:write": "Change video titles, visibility, and settings",
 	"profile:read": "Read your Zellia Clips profile",
 	"profile:write": "Update your Zellia Clips profile",
 	"caps:upload": "Upload recordings and imported media",

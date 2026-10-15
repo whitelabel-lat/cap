@@ -116,7 +116,7 @@ export function ClientMyCapsLink({
 			href={spaceId ? `/dashboard/spaces/${spaceId}` : "/dashboard/caps"}
 			className={clsx(
 				"text-xl whitespace-nowrap flex items-center gap-1.5 transition-colors duration-200 hover:text-gray-12",
-				isDragOver ? "text-blue-10" : "text-gray-9",
+				isDragOver ? "text-blue-11" : "text-gray-9",
 				isMovingVideo && "opacity-70",
 				"drag-target", // Add a class for styling when used as a drop target
 			)}

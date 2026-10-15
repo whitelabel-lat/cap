@@ -1,6 +1,7 @@
 "use client";
 
 import { buildEnv, NODE_ENV } from "@cap/env";
+import { BRAND_SOURCE_CODE_URL } from "@cap/utils/brand";
 import {
 	Button,
 	DropdownMenu,
@@ -769,6 +770,17 @@ export const ShareHeader = ({
 		);
 	};
 
+	const renderSourceLink = () => (
+		<a
+			href={BRAND_SOURCE_CODE_URL}
+			target="_blank"
+			rel="noopener noreferrer"
+			className="shrink-0 text-[11px] text-gray-9 transition-colors hover:text-gray-12"
+		>
+			Código fuente
+		</a>
+	);
+
 	const renderBranding = () => {
 		if (!branding) return null;
 
@@ -1067,6 +1079,7 @@ export const ShareHeader = ({
 							</div>
 						)}
 						{renderSignedOutNav()}
+						{renderSourceLink()}
 					</div>
 					<div className="flex flex-col gap-3 lg:flex-row lg:items-center">
 						<div className="flex min-w-0 items-center justify-between gap-3 lg:justify-start lg:gap-5">

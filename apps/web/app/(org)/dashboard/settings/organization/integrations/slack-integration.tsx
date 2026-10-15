@@ -40,7 +40,7 @@ const resultMessages: Record<
 	},
 	"not-configured": {
 		type: "error",
-		message: "Slack is not configured on this video deployment",
+		message: "Slack is not configured on this Zellia Clips deployment",
 	},
 };
 
@@ -101,7 +101,7 @@ export function SlackIntegration({
 				<div className="flex-1 min-w-0">
 					<p className="text-[13px] font-medium text-gray-12">Slack</p>
 					<p className="text-[11px] text-gray-9">
-						Play public Video recordings directly inside Slack.
+						Play public video recordings directly inside Slack.
 					</p>
 				</div>
 				<span

@@ -283,7 +283,7 @@ export function MoveItemsDialog({
 									</span>
 									{selectedFolderId === null &&
 										(!sameLocation || currentDestinationId !== null) && (
-											<Check className="shrink-0 size-4 text-blue-10" />
+											<Check className="shrink-0 size-4 text-blue-11" />
 										)}
 								</button>
 
@@ -323,7 +323,7 @@ export function MoveItemsDialog({
 												)}
 											</span>
 											{isSelected && (
-												<Check className="shrink-0 size-4 text-blue-10" />
+												<Check className="shrink-0 size-4 text-blue-11" />
 											)}
 										</button>
 									);
