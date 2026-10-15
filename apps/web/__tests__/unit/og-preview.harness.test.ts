@@ -1,12 +1,17 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, it } from "vitest";
+import { VideoThumbnailPlaceholder } from "../../components/VideoThumbnailPlaceholder";
 import { renderVideoOg, type VideoOgVariant } from "../../lib/og/video-og";
 
 const outDir = process.env.OG_PREVIEW_DIR;
-const frame = `data:image/jpeg;base64,${readFileSync(
-	join(__dirname, "..", "..", "public", "landing-banner.jpg"),
-).toString("base64")}`;
+const frame = outDir
+	? `data:image/png;base64,${readFileSync(
+			process.env.OG_PREVIEW_FRAME ?? join(outDir, "sample-frame-zellia.png"),
+		).toString("base64")}`
+	: "";
 
 const long =
 	"Revisión trimestral de producto: roadmap, métricas de adopción, deuda técnica y plan de lanzamiento para el segundo semestre con todo el equipo";
@@ -80,4 +85,16 @@ describe.skipIf(!outDir)("og preview harness", () => {
 			);
 		}
 	}, 60000);
+
+	it("writes the thumbnail placeholder snapshot page", () => {
+		mkdirSync(outDir as string, { recursive: true });
+		const card = (width: number) =>
+			`<div style="width:${width}px;aspect-ratio:16/9" class="relative overflow-hidden rounded-xl">${renderToStaticMarkup(createElement(VideoThumbnailPlaceholder)).replaceAll("&amp;", "&")}</div>`;
+		const row = (theme: string, background: string) =>
+			`<section class="${theme}" style="display:flex;gap:24px;align-items:flex-start;padding:24px;background:${background}">${[320, 240, 160].map(card).join("")}</section>`;
+		writeFileSync(
+			join(outDir as string, "placeholder.html"),
+			`<!doctype html><html><head><link rel="stylesheet" href="placeholder.css"></head><body style="margin:0">${row("light", "#ffffff")}${row("dark", "#0f1115")}</body></html>`,
+		);
+	});
 });
