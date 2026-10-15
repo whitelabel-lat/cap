@@ -1,4 +1,3 @@
-import { BRAND_NAME } from "@cap/utils/brand";
 import { createHash, createHmac } from "node:crypto";
 import { HeadBucketCommand, S3Client } from "@aws-sdk/client-s3";
 import { autoShareVideoToOrg } from "@cap/database/auto-share";
@@ -20,6 +19,7 @@ import {
 	stripe,
 	userIsPro,
 } from "@cap/utils";
+import { BRAND_NAME } from "@cap/utils/brand";
 import {
 	AgentManagement,
 	collectPasswordHashes,

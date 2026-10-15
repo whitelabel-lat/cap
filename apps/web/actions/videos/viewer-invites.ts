@@ -1,6 +1,5 @@
 "use server";
 
-import { BRAND_NAME } from "@cap/utils/brand";
 import { db } from "@cap/database";
 import { getCurrentUser } from "@cap/database/auth/session";
 import { sendEmail } from "@cap/database/emails/config";
@@ -8,6 +7,7 @@ import { VideoViewerInvite } from "@cap/database/emails/video-viewer-invite";
 import { nanoId } from "@cap/database/helpers";
 import { videos, videoViewerGrants } from "@cap/database/schema";
 import { serverEnv } from "@cap/env";
+import { BRAND_NAME } from "@cap/utils/brand";
 import type { Video } from "@cap/web-domain";
 import { and, eq, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";

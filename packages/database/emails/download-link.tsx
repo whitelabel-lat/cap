@@ -1,5 +1,4 @@
 import { BRAND_NAME } from "@cap/utils/brand";
-import { emailLogoUrl } from "./brand";
 import {
 	Body,
 	Container,
@@ -13,6 +12,7 @@ import {
 	Tailwind,
 	Text,
 } from "@react-email/components";
+import { emailLogoUrl } from "./brand";
 import Footer from "./components/Footer";
 
 export function DownloadLink({ email = "" }: { email: string }) {

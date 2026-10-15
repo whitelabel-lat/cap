@@ -1,6 +1,5 @@
 "use server";
 
-import { BRAND_NAME } from "@cap/utils/brand";
 import { db } from "@cap/database";
 import { getCurrentUser } from "@cap/database/auth/session";
 import { sendEmail } from "@cap/database/emails/config";
@@ -13,6 +12,7 @@ import {
 	users,
 } from "@cap/database/schema";
 import { serverEnv } from "@cap/env";
+import { BRAND_NAME } from "@cap/utils/brand";
 import type { Organisation } from "@cap/web-domain";
 import { and, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";

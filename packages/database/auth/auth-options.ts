@@ -1,6 +1,6 @@
-import { BRAND_NAME } from "@cap/utils/brand";
 import crypto from "node:crypto";
 import { serverEnv } from "@cap/env";
+import { BRAND_NAME } from "@cap/utils/brand";
 import { User } from "@cap/web-domain";
 import { eq } from "drizzle-orm";
 import type { NextAuthOptions } from "next-auth";
