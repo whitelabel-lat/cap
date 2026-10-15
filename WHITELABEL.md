@@ -57,6 +57,8 @@ El producto se muestra como **Zellia Clips** (marca Zellia). Todo el cambio de m
 | Enlace "Código fuente" (obligación AGPL) | pie de la barra lateral (`Navbar/Items.tsx`) |
 | Test guardián | `apps/web/__tests__/unit/zellia-brand.test.ts` (falla si reaparece "cap.so", "Powered by Cap" o el azul viejo en los archivos clave) |
 
+Los assets públicos (logos, iconos, manifest, fuentes) deben pasar el redirect a `/login` del proxy: la lista está en `apps/web/lib/public-static-assets.ts` (test `proxy-public-assets.test.ts`); un archivo nuevo en `public/` que deba verse sin sesión (por ejemplo desde un correo) hay que añadirlo ahí. `metadataBase` sale de `WEB_URL` en tiempo de petición; las rutas estáticas lo fijan en el build (con la URL que tenga el build), y el título con plantilla `| Zellia Clips` solo aplica a las rutas de `(org)`.
+
 Regenerar los assets (requiere `google-chrome` y `ffmpeg`): `node scripts/whitelabel/brand/build-brand.mjs`. Las fuentes son los SVG originales de Zellia copiados en `scripts/whitelabel/brand/src/` (viewBox recortado al dibujo). El script reescribe los SVG, los PNG/ICO, `brand-shapes.ts` y `og.png`.
 
 Contraste (AA): botón `blue-9` + texto blanco, 13:1 (claro) y 6,6:1 (oscuro, `#2B5F94`); texto `blue-11` sobre blanco 8:1 y sobre `blue-3` 7:1 (claro), `#8FB4DE` sobre fondo oscuro 8:1.
