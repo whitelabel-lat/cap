@@ -59,7 +59,7 @@ export const RecordVideoPage = () => {
 								variant="primary"
 							>
 								<FontAwesomeIcon className="size-3.5" icon={faDownload} />
-								Open Cap Desktop
+								Open desktop app
 							</Button>
 							<p className="text-sm text-gray-10">or</p>
 							<WebRecorderDialog />
@@ -97,7 +97,7 @@ const FaqAccordion = () => {
 		{
 			id: "pip",
 			q: "How do I keep my webcam visible?",
-			a: "On compatible browsers, selecting a camera opens a picture‑in‑picture window that’s captured when you record fullscreen. We recommend recording fullscreen to keep it on top. If PiP capture isn’t supported, your camera stays within the Cap recorder tab.",
+			a: "On compatible browsers, selecting a camera opens a picture‑in‑picture window that’s captured when you record fullscreen. We recommend recording fullscreen to keep it on top. If PiP capture isn’t supported, your camera stays within the recorder tab.",
 		},
 		{
 			id: "what-can-i-record",
@@ -107,12 +107,12 @@ const FaqAccordion = () => {
 		{
 			id: "system-audio",
 			q: "Can I record system audio?",
-			a: "Browsers limit system‑wide audio capture. We recommend using Cap Desktop for best results.",
+			a: "Browsers limit system‑wide audio capture. We recommend using the desktop app for best results.",
 		},
 		{
 			id: "install",
 			q: "Do I need to install the app?",
-			a: `No. You can record in your browser. For longer recordings, system audio, and advanced editing, use Cap Desktop. The Free plan supports up to ${freeMinutes} minutes per recording in the browser.`,
+			a: `No. You can record in your browser. For longer recordings, system audio, and advanced editing, use the desktop app. The Free plan supports up to ${freeMinutes} minutes per recording in the browser.`,
 		},
 	];
 

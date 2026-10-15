@@ -1,10 +1,16 @@
 import { NextRequest } from "next/server";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { dub } from "../../../../packages/utils/src/lib/dub";
 import { GET as getMarketingOg } from "../../app/api/og/route";
 import { signOgParams, verifyOgSignature } from "../../lib/og/signature";
 import { ogImageUrl } from "../../lib/og/url";
-import { formatDuration, renderVideoOg } from "../../lib/og/video-og";
+import {
+	formatDuration,
+	renderVideoOg,
+	Thumbnail,
+} from "../../lib/og/video-og";
 import {
 	canonicalVideoShareUrl,
 	richVideoLinkHtml,
@@ -111,6 +117,33 @@ describe("video og", () => {
 			pngSize(Buffer.from(await res.arrayBuffer()));
 		},
 	);
+
+	it("draws a branded placeholder instead of a flat navy box without a thumbnail", () => {
+		const markup = renderToStaticMarkup(
+			createElement(Thumbnail, { duration: 30 }),
+		);
+		expect(markup).not.toMatch(/height:338px;[^"]*background:#023562/);
+		expect(markup.match(/fill="#ffffff"/g)).toHaveLength(1);
+		expect(markup).toContain(
+			"background-image:linear-gradient(135deg, #F5F9FE",
+		);
+		expect(markup).toContain("#FC4501");
+		expect(markup).toContain('aria-label="Play"');
+	});
+
+	it("keeps the thumbnail frame when a real frame exists", () => {
+		const markup = renderToStaticMarkup(
+			createElement(Thumbnail, {
+				thumbnail: {
+					width: 1600,
+					height: 900,
+					src: "data:image/png;base64,AAAA",
+				},
+			}),
+		);
+		expect(markup).toContain("data:image/png;base64,AAAA");
+		expect(markup).not.toContain("#FC4501");
+	});
 
 	it("formats durations", () => {
 		expect(formatDuration(0)).toBe("0:00");

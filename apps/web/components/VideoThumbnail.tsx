@@ -1,4 +1,4 @@
-import { Logo, LogoSpinner } from "@cap/ui";
+import { LogoSpinner } from "@cap/ui";
 import type { Video } from "@cap/web-domain";
 import clsx from "clsx";
 import { Effect } from "effect";
@@ -6,6 +6,7 @@ import moment from "moment";
 import Image from "next/image";
 import type { CSSProperties } from "react";
 import { memo, useEffect, useRef, useState } from "react";
+import { VideoThumbnailPlaceholder } from "@/components/VideoThumbnailPlaceholder";
 import { useEffectQuery } from "@/lib/EffectRuntime";
 import { ThumbnailRequest } from "@/lib/Requests/ThumbnailRequest";
 
@@ -154,9 +155,7 @@ export const VideoThumbnail: React.FC<VideoThumbnailProps> = memo(
 			>
 				<div className="flex absolute inset-0 z-10 justify-center items-center">
 					{showError ? (
-						<div className="flex justify-center items-center w-full h-full bg-gradient-to-br from-[#023562] to-[#23527F]">
-							<Logo hideLogoName white className="w-auto h-1/2" />
-						</div>
+						<VideoThumbnailPlaceholder />
 					) : (
 						showLoading &&
 						!thumbnailUrl.data && <LogoSpinner className="w-5 h-auto md:w-8" />

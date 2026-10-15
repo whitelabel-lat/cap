@@ -171,6 +171,84 @@ export const BrandIsotypeArt = ({
 	);
 };
 
+export const BrandCaption = () => (
+	<div style={flex({ alignItems: "center", gap: 12, height: 52 })}>
+		<div
+			style={flex({
+				width: 12,
+				height: 12,
+				borderRadius: 9999,
+				background: BRAND_COLORS.accent,
+			})}
+		/>
+		<span
+			style={{
+				display: "block",
+				fontSize: 24,
+				fontWeight: 500,
+				letterSpacing: -0.2,
+				color: OG_INK_SOFT,
+			}}
+		>
+			{BRAND_NAME}
+		</span>
+	</div>
+);
+
+export const OG_PLACEHOLDER_GRADIENT =
+	"linear-gradient(135deg, #F5F9FE 0%, #E6EBEF 55%, #AABFD6 130%)";
+
+export const OgPlaceholder = ({
+	width,
+	height,
+	playSize = 60,
+}: {
+	width: number;
+	height: number;
+	playSize?: number;
+}) => (
+	<div
+		style={flex({
+			position: "relative",
+			width,
+			height,
+			alignItems: "center",
+			justifyContent: "center",
+			backgroundImage: OG_PLACEHOLDER_GRADIENT,
+		})}
+	>
+		<BrandIsotypeArt height={Math.round(height * 0.56)} />
+		<div
+			style={flex({
+				position: "absolute",
+				left: 20,
+				bottom: 20,
+				width: playSize,
+				height: playSize,
+				borderRadius: 9999,
+				background: BRAND_COLORS.primary,
+				alignItems: "center",
+				justifyContent: "center",
+				boxShadow: "0 14px 28px -10px rgba(2,53,98,0.55)",
+			})}
+		>
+			<svg
+				role="img"
+				aria-label="Play"
+				width={Math.round(playSize * 0.38)}
+				height={Math.round(playSize * 0.38)}
+				viewBox="0 0 24 24"
+				style={{ marginLeft: Math.round(playSize * 0.05) }}
+			>
+				<path
+					d="M7 3.8c0-.8.9-1.3 1.6-.9l12 7.6c.6.4.6 1.3 0 1.7l-12 7.6c-.7.4-1.6-.1-1.6-.9Z"
+					fill="#ffffff"
+				/>
+			</svg>
+		</div>
+	</div>
+);
+
 export const titleFontSize = (title: string) => {
 	if (title.length <= 22) return 84;
 	if (title.length <= 30) return 70;
