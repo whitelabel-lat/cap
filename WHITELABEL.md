@@ -144,8 +144,8 @@ git grep "whitelabel fork"     # revisar que nuestros cambios sigan
 
 | Dato | Valor |
 |---|---|
-| URL | https://loom.lab.whitelabel.lat (videos: `/s/<id>`, mismos enlaces que antes) |
-| S3 público | https://s3.loom.lab.whitelabel.lat (MinIO, bucket `capso`) |
+| URL | https://clips.zellia.io (videos: `/s/<id>`). El dominio viejo `loom.lab.whitelabel.lat` sigue asociado a cap-web para que los enlaces antiguos funcionen; las cookies son por dominio, así que cada persona debe iniciar sesión de nuevo en el dominio nuevo |
+| S3 público | https://s3.loom.lab.whitelabel.lat (MinIO, bucket `capso`; no cambió con el dominio de la app) |
 | Servidor | `ssh vanguardistas` (177.7.42.143), Dokploy v0.30.8 |
 | Dokploy | org `W Lab` → proyecto `Loom` → env `production` |
 | cap-web | application `loom-capweb-qcmdip`: git `https://github.com/whitelabel-lat/cap.git` rama `main`, Dockerfile `apps/web/Dockerfile`, contexto `.`, puerto 3000. Corre las migraciones al arrancar. Volumen `loom-capweb-qcmdip-workflow` → `/app/.workflow-data` (estado de los workflows) |
@@ -186,9 +186,9 @@ ssh vanguardistas 'TS=$(date +%Y%m%d-%H%M); M=$(docker ps -q -f name=loom-mysql-
 
 ## Variables en producción (pestaña Environment de cada servicio en Dokploy; solo nombres)
 
-- **cap-web**: `NODE_ENV`, `WEB_URL`, `NEXTAUTH_URL` (`https://loom.lab.whitelabel.lat`), `DATABASE_URL` (`mysql://root:…@loom-mysql-okdbu1:3306/planetscale?ssl={"rejectUnauthorized":false}`), `DATABASE_ENCRYPTION_KEY` y `NEXTAUTH_SECRET` (**idénticos a los del stack viejo**: si cambian, los datos cifrados y las sesiones se rompen), `CAP_AWS_ACCESS_KEY`, `CAP_AWS_SECRET_KEY`, `CAP_AWS_BUCKET` (`capso`), `CAP_AWS_REGION`, `S3_PUBLIC_ENDPOINT` (`https://s3.loom.lab.whitelabel.lat`), `S3_INTERNAL_ENDPOINT` (`http://loom-minio-7q612h:3902`), `S3_PATH_STYLE=true`, `RESEND_API_KEY`, `RESEND_FROM_DOMAIN`, `OPENAI_API_KEY`, `ASSEMBLY_API_KEY`, `MEDIA_SERVER_URL` (`http://loom-mediaserver-wtljt9:3456`), `MEDIA_SERVER_WEBHOOK_URL` (`http://loom-capweb-qcmdip:3000`), `MEDIA_SERVER_WEBHOOK_SECRET`, `PORT=3000` y `WORKFLOW_LOCAL_DATA_DIR=/app/.workflow-data` (runtime de workflows, ver trampas), `CRON_SECRET` (mismo valor que en el servicio cron), y las cinco del fork (tabla de arriba).
+- **cap-web**: `NODE_ENV`, `WEB_URL`, `NEXTAUTH_URL` (`https://clips.zellia.io`, igual que `WEB_URL`), `DATABASE_URL` (`mysql://root:…@loom-mysql-okdbu1:3306/planetscale?ssl={"rejectUnauthorized":false}`), `DATABASE_ENCRYPTION_KEY` y `NEXTAUTH_SECRET` (**idénticos a los del stack viejo**: si cambian, los datos cifrados y las sesiones se rompen), `CAP_AWS_ACCESS_KEY`, `CAP_AWS_SECRET_KEY`, `CAP_AWS_BUCKET` (`capso`), `CAP_AWS_REGION`, `S3_PUBLIC_ENDPOINT` (`https://s3.loom.lab.whitelabel.lat`), `S3_INTERNAL_ENDPOINT` (`http://loom-minio-7q612h:3902`), `S3_PATH_STYLE=true`, `RESEND_API_KEY`, `RESEND_FROM_DOMAIN`, `OPENAI_API_KEY`, `ASSEMBLY_API_KEY`, `MEDIA_SERVER_URL` (`http://loom-mediaserver-wtljt9:3456`), `MEDIA_SERVER_WEBHOOK_URL` (`http://loom-capweb-qcmdip:3000`), `MEDIA_SERVER_WEBHOOK_SECRET`, `PORT=3000` y `WORKFLOW_LOCAL_DATA_DIR=/app/.workflow-data` (runtime de workflows, ver trampas), `CRON_SECRET` (mismo valor que en el servicio cron), y las cinco del fork (tabla de arriba).
 - **cron**: `CAP_WEB_URL=http://loom-capweb-qcmdip:3000`, `CRON_SECRET` (aleatorio de 64 hex, `openssl rand -hex 32`; idéntico al de cap-web, si difiere todas las llamadas dan 401).
-- **media-server**: `PORT=3456`, `MEDIA_SERVER_WEBHOOK_SECRET` (mismo valor que en cap-web; si falta o difiere, el media-server rechaza todo), `MEDIA_SERVER_WEB_ORIGIN=https://loom.lab.whitelabel.lat`.
+- **media-server**: `PORT=3456`, `MEDIA_SERVER_WEBHOOK_SECRET` (mismo valor que en cap-web; si falta o difiere, el media-server rechaza todo), `MEDIA_SERVER_WEB_ORIGIN=https://clips.zellia.io`.
 - **minio**: `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD` (copiadas del stack viejo).
 - `DEEPGRAM_API_KEY` ya no se lee (upstream pasó a AssemblyAI) y no se configuró.
 
