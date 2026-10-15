@@ -1,4 +1,4 @@
-import { CAP_LOGO_URL } from "@cap/utils";
+import { BRAND_NAME } from "@cap/utils/brand";
 import {
 	Body,
 	Container,
@@ -12,6 +12,7 @@ import {
 	Tailwind,
 	Text,
 } from "@react-email/components";
+import { emailLogoUrl } from "./brand";
 import Footer from "./components/Footer";
 
 export function LoginLink({
@@ -24,16 +25,15 @@ export function LoginLink({
 	return (
 		<Html>
 			<Head />
-			<Preview>Your Cap Login Link</Preview>
+			<Preview>Your video Login Link</Preview>
 			<Tailwind>
 				<Body className="mx-auto my-auto bg-gray-1 font-sans">
 					<Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
 						<Section className="mt-8">
 							<Img
-								src={CAP_LOGO_URL}
-								width="40"
-								height="40"
-								alt="Cap"
+								src={emailLogoUrl()}
+								width="120"
+								alt={BRAND_NAME}
 								className="mx-auto my-0"
 							/>
 						</Section>
@@ -41,7 +41,7 @@ export function LoginLink({
 							Your Login Link
 						</Heading>
 						<Text className="text-sm leading-6 text-black">
-							Welcome to Cap!
+							Welcome to Zellia Clips!
 						</Text>
 						<Text className="text-sm leading-6 text-black">
 							Please click the magic link below to sign in to your account.

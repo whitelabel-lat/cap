@@ -147,7 +147,7 @@ export async function notifySignupRequest({
 				deliver("team", () =>
 					sendEmail({
 						email: notifyEmail,
-						subject: `Solicitud de acceso a Loom: ${email}`,
+						subject: `Solicitud de acceso a Zellia Clips: ${email}`,
 						react: SignupRequestNotification({
 							notifyEmail,
 							requesterEmail: email,

@@ -1,4 +1,4 @@
-import { CAP_LOGO_URL } from "@cap/utils";
+import { BRAND_NAME } from "@cap/utils/brand";
 import {
 	Body,
 	Container,
@@ -11,6 +11,7 @@ import {
 	Tailwind,
 	Text,
 } from "@react-email/components";
+import { emailLogoUrl } from "./brand";
 import FooterEs from "./components/FooterEs";
 
 export function SignupRequestReceived({ email = "" }: { email: string }) {
@@ -23,10 +24,9 @@ export function SignupRequestReceived({ email = "" }: { email: string }) {
 					<Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
 						<Section className="mt-8">
 							<Img
-								src={CAP_LOGO_URL}
-								width="40"
-								height="40"
-								alt="Loom"
+								src={emailLogoUrl()}
+								width="120"
+								alt={BRAND_NAME}
 								className="mx-auto my-0"
 							/>
 						</Section>
@@ -35,8 +35,8 @@ export function SignupRequestReceived({ email = "" }: { email: string }) {
 						</Heading>
 						<Text className="text-sm leading-6 text-black">Hola,</Text>
 						<Text className="text-sm leading-6 text-black">
-							Gracias por tu interés en Loom. El equipo de Whitelabel revisará
-							tu solicitud.
+							Gracias por tu interés en Zellia Clips. El equipo de Whitelabel
+							revisará tu solicitud.
 						</Text>
 						<Text className="text-sm leading-6 text-black">
 							Si la aprueban, recibirás una invitación por correo para crear tu
