@@ -62,13 +62,13 @@ export async function generateMetadata(
 		Effect.catchTags({
 			PolicyDenied: () =>
 				Effect.succeed({
-					title: "Cap: This video is private",
+					title: "This video is private",
 					description: "This video is private and cannot be shared.",
 					robots: "noindex, nofollow",
 				}),
 			VerifyVideoPasswordError: () =>
 				Effect.succeed({
-					title: "Cap: Password Protected Video",
+					title: "Password Protected Video",
 					description: "This video is password protected.",
 					robots: "noindex, nofollow",
 				}),
@@ -315,7 +315,7 @@ async function EmbedContent({
 					This video is over its free limit
 				</h1>
 				<p className="max-w-sm text-sm leading-relaxed text-white/60">
-					{`The owner of this video has used all ${Video.FREE_PLAN_SHAREABLE_LINKS_PER_MONTH} shareable links included with Cap's free plan this month. As soon as they upgrade to Cap Pro, this video will be instantly viewable.`}
+					{`The owner of this video has used all ${Video.FREE_PLAN_SHAREABLE_LINKS_PER_MONTH} shareable links included with the Zellia Clips free plan this month. As soon as they upgrade to Zellia Clips Pro, this video will be instantly viewable.`}
 				</p>
 				<a
 					href={`${buildEnv.NEXT_PUBLIC_WEB_URL}/s/${video.id}`}
@@ -323,7 +323,7 @@ async function EmbedContent({
 					rel="noreferrer"
 					className="mt-2 rounded-full border border-gray-5 bg-gray-3 px-5 py-2 text-sm font-medium text-gray-12 transition-colors hover:bg-gray-6"
 				>
-					Open on Cap
+					Open on Zellia Clips
 				</a>
 			</div>
 		);

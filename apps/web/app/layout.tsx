@@ -1,75 +1,53 @@
 import "@/app/globals.css";
 import { buildEnv } from "@cap/env";
+import { BRAND_COLORS, BRAND_DESCRIPTION, BRAND_NAME } from "@cap/utils/brand";
 import { OpenPanelComponent } from "@openpanel/nextjs";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Script from "next/script";
 import type { PropsWithChildren } from "react";
 
+// whitelabel fork: Zellia Clips branding (name, colors, metadata and font) lives in @cap/utils/brand and public/logos/zellia.
 const defaultFont = localFont({
 	src: [
 		{
-			path: "../public/fonts/NeueMontreal-Bold.woff2",
-			weight: "700",
+			path: "../public/fonts/Inter-Variable-latin.woff2",
+			weight: "100 900",
 			style: "normal",
-		},
-		{
-			path: "../public/fonts/NeueMontreal-Regular.woff2",
-			weight: "400",
-			style: "normal",
-		},
-		{
-			path: "../public/fonts/NeueMontreal-Medium.woff2",
-			weight: "500",
-			style: "normal",
-		},
-		{
-			path: "../public/fonts/NeueMontreal-MediumItalic.woff2",
-			weight: "500",
-			style: "italic",
-		},
-		{
-			path: "../public/fonts/NeueMontreal-Italic.woff2",
-			weight: "400",
-			style: "italic",
-		},
-		{
-			path: "../public/fonts/NeueMontreal-BoldItalic.woff2",
-			weight: "700",
-			style: "italic",
 		},
 	],
 	preload: false,
 });
 
-export const metadata: Metadata = {
-	metadataBase: new URL("https://cap.so"),
-	title: "Cap — Beautiful screen recordings, owned by you.",
-	description:
-		"Cap is the open source alternative to Loom. Lightweight, powerful, and cross-platform. Record and share in seconds.",
-	openGraph: {
-		title: "Cap — Beautiful screen recordings, owned by you.",
-		description:
-			"Cap is the open source alternative to Loom. Lightweight, powerful, and cross-platform. Record and share in seconds.",
-		type: "website",
-		url: "https://cap.so",
-		siteName: "Cap",
-		images: [
-			{
-				url: "/api/og",
-				width: 1200,
-				height: 630,
-				alt: "Cap — Beautiful screen recordings, owned by you.",
-			},
-		],
-	},
-	twitter: {
-		card: "summary_large_image",
-		title: "Cap — Beautiful screen recordings, owned by you.",
-		description:
-			"Cap is the open source alternative to Loom. Lightweight, powerful, and cross-platform. Record and share in seconds.",
-		images: ["/api/og"],
-	},
+export const generateMetadata = (): Metadata => {
+	const webUrl = buildEnv.NEXT_PUBLIC_WEB_URL;
+	return {
+		metadataBase: new URL(webUrl),
+		title: { default: BRAND_NAME, template: `%s | ${BRAND_NAME}` },
+		description: BRAND_DESCRIPTION,
+		applicationName: BRAND_NAME,
+		openGraph: {
+			title: BRAND_NAME,
+			description: BRAND_DESCRIPTION,
+			type: "website",
+			url: webUrl,
+			siteName: BRAND_NAME,
+			images: [
+				{
+					url: "/api/og",
+					width: 1200,
+					height: 630,
+					alt: BRAND_NAME,
+				},
+			],
+		},
+		twitter: {
+			card: "summary_large_image",
+			title: BRAND_NAME,
+			description: BRAND_DESCRIPTION,
+			images: ["/api/og"],
+		},
+	};
 };
 
 export default function RootLayout({ children }: PropsWithChildren) {
@@ -97,10 +75,14 @@ export default function RootLayout({ children }: PropsWithChildren) {
 					href="/favicon-16x16.png"
 				/>
 				<link rel="manifest" href="/site.webmanifest" />
-				<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5" />
+				<link
+					rel="mask-icon"
+					href="/safari-pinned-tab.svg"
+					color={BRAND_COLORS.primary}
+				/>
 				<link rel="shortcut icon" href="/favicon.ico" />
-				<meta name="msapplication-TileColor" content="#da532c" />
-				<meta name="theme-color" content="#ffffff" />
+				<meta name="msapplication-TileColor" content={BRAND_COLORS.primary} />
+				<meta name="theme-color" content={BRAND_COLORS.primary} />
 			</head>
 			<body suppressHydrationWarning>
 				<Script src="/theme-script.js" strategy="beforeInteractive" />

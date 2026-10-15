@@ -1,4 +1,4 @@
-import { LogoSpinner } from "@cap/ui";
+import { Logo, LogoSpinner } from "@cap/ui";
 import type { Video } from "@cap/web-domain";
 import clsx from "clsx";
 import { Effect } from "effect";
@@ -48,15 +48,6 @@ const formatDuration = (durationSecs: number) => {
 	}
 };
 
-function generateRandomGrayScaleColor() {
-	const minGrayScaleValue = 190;
-	const maxGrayScaleValue = 235;
-	const grayScaleValue = Math.floor(
-		Math.random() * (maxGrayScaleValue - minGrayScaleValue) + minGrayScaleValue,
-	);
-	return `rgb(${grayScaleValue}, ${grayScaleValue}, ${grayScaleValue})`;
-}
-
 function getPreviewGifSrc(videoId: Video.VideoId) {
 	return `/api/video/preview?videoId=${encodeURIComponent(videoId)}&fallback=none`;
 }
@@ -100,8 +91,6 @@ export const VideoThumbnail: React.FC<VideoThumbnailProps> = memo(
 			status: "loading",
 		}));
 		latestVideoId.current = videoId;
-
-		const randomGradient = `linear-gradient(to right, ${generateRandomGrayScaleColor()}, ${generateRandomGrayScaleColor()})`;
 
 		useEffect(() => {
 			if (imageRef.current?.complete && imageRef.current.naturalWidth !== 0) {
@@ -165,15 +154,12 @@ export const VideoThumbnail: React.FC<VideoThumbnailProps> = memo(
 			>
 				<div className="flex absolute inset-0 z-10 justify-center items-center">
 					{showError ? (
-						<div
-							className="w-full h-full"
-							style={{ backgroundImage: randomGradient }}
-						/>
+						<div className="flex justify-center items-center w-full h-full bg-gradient-to-br from-[#023562] to-[#23527F]">
+							<Logo hideLogoName white className="w-auto h-1/2" />
+						</div>
 					) : (
 						showLoading &&
-						!thumbnailUrl.data && (
-							<LogoSpinner className="w-5 h-auto animate-spin md:w-8" />
-						)
+						!thumbnailUrl.data && <LogoSpinner className="w-5 h-auto md:w-8" />
 					)}
 				</div>
 				{thumbnailUrl.data && (
