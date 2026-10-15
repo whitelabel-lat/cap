@@ -42,8 +42,8 @@ export const WebRecorderDialogHeader = ({
 			</div>
 			<div className="flex items-center justify-between pb-[0.25rem]">
 				<div className="flex items-center space-x-1">
-					<Logo className="w-[88px] h-6 block dark:hidden" />
-					<Logo white className="w-[88px] h-6 hidden dark:block" />
+					<Logo className="w-auto h-6 block dark:hidden" />
+					<Logo white className="w-auto h-6 hidden dark:block" />
 					<span
 						onClick={() => {
 							if (!user.isPro) setUpgradeModalOpen(true);

@@ -67,7 +67,7 @@ export const DesktopNav = () => {
 							<Logo
 								hideLogoName={sidebarCollapsed}
 								className={clsx(
-									sidebarCollapsed ? "mx-auto w-8 h-8" : "w-[120px] h-8",
+									sidebarCollapsed ? "mx-auto w-8 h-8" : "w-auto h-8",
 								)}
 							/>
 						</Link>

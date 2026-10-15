@@ -10,6 +10,7 @@ export const Logo = ({
 	showVersion,
 	showBeta,
 	white,
+	staticInk,
 	hideLogoName,
 	style,
 }: {
@@ -17,6 +18,7 @@ export const Logo = ({
 	showVersion?: boolean;
 	showBeta?: boolean;
 	white?: boolean;
+	staticInk?: boolean;
 	hideLogoName?: boolean;
 	style?: React.CSSProperties;
 	squaredMark?: boolean;
@@ -42,7 +44,9 @@ export const Logo = ({
 				className={className}
 			>
 				<path
-					className={white ? "fill-white" : "fill-gray-12"}
+					className={
+						white ? "fill-white" : staticInk ? undefined : "fill-gray-12"
+					}
 					fill={bodyFill}
 					fillRule="evenodd"
 					d={shape.body}

@@ -21,7 +21,7 @@ export default async function McpAuthorizePage(props: {
 		return (
 			<main className="flex min-h-screen items-center justify-center bg-gray-2 px-6">
 				<section className="w-full max-w-md rounded-2xl border border-gray-4 bg-white p-8 shadow-sm">
-					<Logo className="mb-8 h-8 w-auto" />
+					<Logo staticInk className="mb-8 h-8 w-auto" />
 					<h1 className="text-xl font-semibold text-gray-12">
 						Invalid connection request
 					</h1>
@@ -40,7 +40,7 @@ export default async function McpAuthorizePage(props: {
 	return (
 		<main className="flex min-h-screen items-center justify-center bg-gray-2 px-6">
 			<section className="w-full max-w-md rounded-2xl border border-gray-4 bg-white p-8 shadow-sm">
-				<Logo className="mb-8 h-8 w-auto" />
+				<Logo staticInk className="mb-8 h-8 w-auto" />
 				<h1 className="text-xl font-semibold text-gray-12">
 					Connect {request.clientName} to Zellia Clips
 				</h1>
