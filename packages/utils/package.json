@@ -3,7 +3,9 @@
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts",
-		"./helpers": "./src/helpers.ts"
+		"./helpers": "./src/helpers.ts",
+		"./brand": "./src/brand.ts",
+		"./brand-shapes": "./src/brand-shapes.ts"
 	},
 	"scripts": {
 		"typecheck": "tsc -b",
