@@ -1,4 +1,5 @@
 import { Button, Popover, PopoverContent, PopoverTrigger } from "@cap/ui";
+import { BRAND_NAME } from "@cap/utils/brand";
 import { faCheck, faCircleInfo } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import clsx from "clsx";
@@ -25,7 +26,7 @@ export const UsageButton = memo(
 				return (
 					<Tooltip
 						position="right"
-						content="Cap Pro. Unlimited shareable links."
+						content={`${BRAND_NAME} Pro. Unlimited shareable links.`}
 					>
 						<Link
 							className="flex justify-center mx-auto w-full"
@@ -59,7 +60,7 @@ export const UsageButton = memo(
 								className="mr-1 text-white size-4"
 								icon={faCheck}
 							/>
-							<p className="text-white">Cap Pro</p>
+							<p className="text-white">{BRAND_NAME} Pro</p>
 						</Button>
 					</Link>
 				</div>

@@ -369,7 +369,7 @@ export function DashboardSearch({
 			>
 				<Search className="flex-shrink-0 size-4 transition-colors text-gray-10 group-hover:text-gray-11" />
 				<span className="flex-1 text-[13px] text-left truncate text-gray-10">
-					Search caps, spaces, settings…
+					Search videos, spaces, settings…
 				</span>
 				<kbd className="hidden items-center px-1.5 h-5 text-[11px] font-medium rounded-md border select-none sm:inline-flex text-gray-10 border-gray-4 bg-gray-1">
 					{shortcutKey}
@@ -386,7 +386,7 @@ export function DashboardSearch({
 							ref={inputRef}
 							value={query}
 							onValueChange={updateQuery}
-							placeholder="Search caps, spaces, settings…"
+							placeholder="Search videos, spaces, settings…"
 							className="h-[52px] text-[15px] pr-12 outline-none"
 						/>
 						<CommandList className="overflow-y-auto px-2 pt-1 pb-2 h-[min(60vh,440px)] max-h-[min(60vh,440px)]">

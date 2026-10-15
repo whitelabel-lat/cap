@@ -90,6 +90,27 @@ describe("user-facing files", () => {
 		expect(source).not.toMatch(/["`>]Cap[:"`<]|\bCap Recording\b/);
 	});
 
+	it.each([
+		"app/(org)/dashboard/_components/Navbar/DashboardSearch.tsx",
+		"app/(org)/dashboard/caps/components/EmptyCapState.tsx",
+		"app/(org)/dashboard/caps/record/RecordVideoPage.tsx",
+		"app/(org)/onboarding/components/DownloadPage.tsx",
+		"components/UsageButton.tsx",
+	])("%s shows no upstream Cap name or Cap cloud-only controls", (file) => {
+		const source = read(file);
+		expect(source).not.toMatch(/\bCap\b/);
+		expect(source).not.toMatch(/Search caps/);
+	});
+
+	it("hides the Cap Chrome extension button outside Cap cloud", () => {
+		for (const file of [
+			"components/ChromeRecorderButton.tsx",
+			"app/(org)/dashboard/caps/components/EmptyCapState.tsx",
+		]) {
+			expect(read(file)).toContain("NEXT_PUBLIC_IS_CAP");
+		}
+	});
+
 	it("does not hardcode the old blue", () => {
 		for (const file of [
 			"../../packages/ui/src/components/icons/LogoBadge.tsx",
