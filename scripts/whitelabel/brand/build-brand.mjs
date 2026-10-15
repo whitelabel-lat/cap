@@ -114,28 +114,23 @@ const raster = (out, width, height, body, background = "00000000") => {
 	]);
 };
 
-const tile = ({ size, radiusFrac = 0, isoFrac }) => {
-	const iso = inlineSvg(shapes.isotype, {
-		body: "#ffffff",
-		style: `height:${size * isoFrac}px;width:auto;display:block`,
-	});
-	return `<div style="width:${size}px;height:${size}px;background:${NAVY};border-radius:${size * radiusFrac}px;display:flex;align-items:center;justify-content:center">${iso}</div>`;
-};
-
-const favicon = (size) =>
-	raster(
-		join(tmp, `fav-${size}.png`),
-		size,
-		size,
-		tile({ size, radiusFrac: 0.2, isoFrac: 0.84 }),
-	);
-
-for (const size of [16, 32, 48]) favicon(size);
-for (const size of [16, 32]) {
-	execFileSync("cp", [
-		join(tmp, `fav-${size}.png`),
-		join(publicDir, `favicon-${size}x${size}.png`),
+const scale = (master, size, out) =>
+	execFileSync("ffmpeg", [
+		"-loglevel",
+		"error",
+		"-y",
+		"-i",
+		join(here, "src", master),
+		"-vf",
+		`scale=${size}:${size}:flags=lanczos`,
+		out,
 	]);
+
+for (const size of [16, 32]) {
+	scale("icon-plain.png", size, join(publicDir, `favicon-${size}x${size}.png`));
+}
+for (const size of [16, 32, 48]) {
+	scale("icon-plain.png", size, join(tmp, `fav-${size}.png`));
 }
 execFileSync("ffmpeg", [
 	"-y",
@@ -155,35 +150,10 @@ execFileSync("ffmpeg", [
 	"2",
 	join(publicDir, "favicon.ico"),
 ]);
-
-raster(
-	join(publicDir, "apple-touch-icon.png"),
-	180,
-	180,
-	tile({ size: 180, isoFrac: 0.82 }),
-	NAVY.slice(1),
-);
-raster(
-	join(publicDir, "android-chrome-192x192.png"),
-	192,
-	192,
-	tile({ size: 192, isoFrac: 0.82 }),
-	NAVY.slice(1),
-);
-raster(
-	join(publicDir, "android-chrome-512x512.png"),
-	512,
-	512,
-	tile({ size: 512, isoFrac: 0.82 }),
-	NAVY.slice(1),
-);
-raster(
-	join(publicDir, "mstile-150x150.png"),
-	150,
-	150,
-	tile({ size: 150, isoFrac: 0.82 }),
-	NAVY.slice(1),
-);
+scale("icon-solid.png", 180, join(publicDir, "apple-touch-icon.png"));
+scale("icon-plain.png", 192, join(publicDir, "android-chrome-192x192.png"));
+scale("icon-plain.png", 512, join(publicDir, "android-chrome-512x512.png"));
+scale("icon-solid.png", 150, join(publicDir, "mstile-150x150.png"));
 
 const wordmarkImg = (shape, body, widthPx) =>
 	inlineSvg(shape, {

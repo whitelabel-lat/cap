@@ -49,7 +49,7 @@ El producto se muestra como **Zellia Clips** (marca Zellia). Todo el cambio de m
 | Nombre, descripción, colores, rutas de logos, URL del código fuente (AGPL) | `packages/utils/src/brand.ts` (`@cap/utils/brand`); `brandAssetUrl()` arma URLs absolutas |
 | Trazos SVG del logo (generado, no editar a mano) | `packages/utils/src/brand-shapes.ts` |
 | Componentes de logo (mantienen props: `white`, `hideLogoName`) | `packages/ui/src/components/icons/Logo.tsx`, `LogoBadge.tsx`, `LogoSpinner.tsx` (el spinner anima el anillo y respeta `prefers-reduced-motion`; los usos ya no llevan `animate-spin`) |
-| Favicons, PWA, apple-touch, mstile, safari-pinned-tab, `og.png`, `cap-logo.png`, `logos/zellia/*`, `site.webmanifest`, `browserconfig.xml` | `apps/web/public/` |
+| Favicons (isotipo sobre baldosa blanca redondeada, legible en pestañas oscuras), PWA, apple-touch, mstile, safari-pinned-tab, `og.png`, `cap-logo.png`, `logos/zellia/*`, `site.webmanifest`, `browserconfig.xml` | `apps/web/public/` |
 | Metadata (título con plantilla `%s \| Zellia Clips`, descripción en español, `metadataBase` desde `NEXT_PUBLIC_WEB_URL`/`WEB_URL`) y tipografía Inter (`public/fonts/Inter-Variable-latin.woff2`) | `apps/web/app/layout.tsx` |
 | Imágenes OG dinámicas (`/api/og`, tarjeta por video) y miniatura sin imagen (isotipo sobre azul Zellia) | `apps/web/lib/og/`, `components/VideoThumbnail.tsx`; fuente Inter TTF en `lib/og/fonts/` |
 | Emails (logo PNG absoluto desde `WEB_URL`, textos) | `packages/database/emails/` (`emailLogoUrl()` en `brand.ts`) |

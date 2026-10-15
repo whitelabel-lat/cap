@@ -15,7 +15,16 @@ export const LogoBadge = ({ className }: { className: string }) => {
 			role="img"
 			aria-label={BRAND_NAME}
 		>
-			<rect width="40" height="40" fill={BRAND_COLORS.primary} rx="9" />
+			<rect width="40" height="40" fill="#fff" rx="9" />
+			<rect
+				width="39.5"
+				height="39.5"
+				x="0.25"
+				y="0.25"
+				stroke="#E6EBEF"
+				strokeWidth="0.5"
+				rx="8.75"
+			/>
 			<svg
 				x="7.7"
 				aria-hidden="true"
@@ -25,7 +34,11 @@ export const LogoBadge = ({ className }: { className: string }) => {
 				viewBox={ZELLIA_ISOTYPE.viewBox}
 				preserveAspectRatio="xMidYMid meet"
 			>
-				<path fill="#fff" fillRule="evenodd" d={ZELLIA_ISOTYPE.body} />
+				<path
+					fill={BRAND_COLORS.ink}
+					fillRule="evenodd"
+					d={ZELLIA_ISOTYPE.body}
+				/>
 				<path
 					fill={ZELLIA_ISOTYPE.dotFill}
 					fillRule="evenodd"
