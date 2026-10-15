@@ -65,7 +65,7 @@ export function PreparingVideoOverlay({
 		<div
 			className={`flex flex-col gap-3 justify-center items-center bg-black rounded-xl ${className ?? ""}`}
 		>
-			<LogoSpinner className="w-8 h-auto animate-spin sm:w-10" />
+			<LogoSpinner className="w-8 h-auto sm:w-10" />
 			<p className="text-white/50 text-sm">{label}</p>
 		</div>
 	);

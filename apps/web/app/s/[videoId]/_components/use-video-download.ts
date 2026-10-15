@@ -12,7 +12,7 @@ import {
  * Fetches a signed URL and saves it to disk, with a toast for the wait.
  *
  * Shared because downloads are offered from three places now: the editor's
- * own menu, the share page's "Manage Cap" menu, and the plain Download button
+ * own menu, the share page's "Manage video" menu, and the plain Download button
  * a space member sees on someone else's Cap.
  */
 export function useVideoDownload(videoId: Video.VideoId) {

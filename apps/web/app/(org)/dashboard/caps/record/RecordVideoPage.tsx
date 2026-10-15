@@ -49,7 +49,7 @@ export const RecordVideoPage = () => {
 					<div className="mx-auto w-full max-w-[560px] min-w-0">
 						<div className="flex flex-col items-center">
 							<p className="max-w-md text-gray-10 text-md">
-								Choose how you'd like to record your Cap
+								Choose how you'd like to record your video
 							</p>
 						</div>
 						<div className="flex flex-wrap gap-3 justify-center items-center mt-4">
@@ -81,8 +81,8 @@ const FaqAccordion = () => {
 	const items = [
 		{
 			id: "what-is-cap",
-			q: "What is a Cap?",
-			a: "A Cap is a quick video recording of your screen, camera, or both that you can share instantly with a link.",
+			q: "What is a clip?",
+			a: "A clip is a quick video recording of your screen, camera, or both that you can share instantly with a link.",
 		},
 		{
 			id: "how-it-works",

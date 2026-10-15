@@ -18,6 +18,7 @@ import {
 	PopoverTrigger,
 } from "@cap/ui";
 import { classNames } from "@cap/utils";
+import { BRAND_NAME, BRAND_SOURCE_CODE_URL } from "@cap/utils/brand";
 import {
 	faBuilding,
 	faCircleInfo,
@@ -81,7 +82,7 @@ const AdminNavItems = ({ toggleMobileNav }: Props) => {
 
 	const manageNavigation = [
 		{
-			name: "My Caps",
+			name: "My Videos",
 			href: `/dashboard/caps`,
 			extraText: userCapsCount,
 			icon: <CapIcon />,
@@ -95,7 +96,7 @@ const AdminNavItems = ({ toggleMobileNav }: Props) => {
 			subNav: [],
 		},
 		{
-			name: "Record a Cap",
+			name: "Record a video",
 			href: `/dashboard/caps/record`,
 			icon: <RecordIcon />,
 			subNav: [],
@@ -449,7 +450,15 @@ const AdminNavItems = ({ toggleMobileNav }: Props) => {
 							</div>
 						)}
 						<p className="mt-2 text-xs text-center truncate text-gray-10">
-							Cap Software, Inc. {new Date().getFullYear()}.
+							{BRAND_NAME} ·{" "}
+							<a
+								href={BRAND_SOURCE_CODE_URL}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="underline hover:text-gray-12"
+							>
+								Código fuente
+							</a>
 						</p>
 					</div>
 				</nav>

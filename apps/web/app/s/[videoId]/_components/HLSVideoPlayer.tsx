@@ -664,7 +664,7 @@ export function HLSVideoPlayer({
 				)}
 			>
 				<div className="flex flex-col gap-2 items-center">
-					<LogoSpinner className="w-8 h-auto animate-spin sm:w-10" />
+					<LogoSpinner className="w-8 h-auto sm:w-10" />
 				</div>
 			</div>
 			<AnimatePresence>

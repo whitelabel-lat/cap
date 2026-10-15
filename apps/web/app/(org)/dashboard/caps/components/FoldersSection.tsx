@@ -64,7 +64,7 @@ const writeStored = (key: string, value: string) => {
 };
 
 // Preferences are remembered per location ("personal", or one space), so a
-// numbered-folder scheme in My Caps doesn't force its sort onto every space.
+// numbered-folder scheme in My Videos doesn't force its sort onto every space.
 // Subfolder pages share their container's setting.
 const useFolderViewPreferences = (scope: string) => {
 	const sortKey = `${SORT_STORAGE_KEY}:${scope}`;
@@ -108,7 +108,7 @@ type FolderItem = Omit<FolderDataType, "layout" | "canMove" | "moveRootLabel">;
 
 interface FoldersSectionProps {
 	title: string;
-	/** Preference scope: "personal" for My Caps and its subfolders, or a space id. */
+	/** Preference scope: "personal" for My Videos and its subfolders, or a space id. */
 	scope: string;
 	folders: FolderItem[];
 	canMove?: boolean;

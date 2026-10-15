@@ -76,9 +76,9 @@ const options: Array<{
 		pro: true,
 	},
 	{
-		label: "Show Cap logo",
+		label: "Show Zellia Clips logo",
 		value: "hideShareableLinkCapLogo",
-		description: "Show Cap branding at the top of shareable links",
+		description: "Show Zellia Clips branding at the top of shareable links",
 		pro: true,
 	},
 ];
@@ -181,8 +181,8 @@ const CapSettingsCard = () => {
 						if (changedKey === "hideShareableLinkCapLogo") {
 							toast.success(
 								debouncedUpdateSettings[changedKey]
-									? "Cap logo hidden"
-									: "Cap logo shown",
+									? "Zellia Clips logo hidden"
+									: "Zellia Clips logo shown",
 							);
 						} else {
 							const isDisabled = Boolean(debouncedUpdateSettings[changedKey]);
@@ -250,7 +250,7 @@ const CapSettingsCard = () => {
 	return (
 		<Card className="flex relative flex-col flex-1 gap-6 w-full min-h-fit">
 			<CardHeader>
-				<CardTitle>Cap Settings</CardTitle>
+				<CardTitle>Video Settings</CardTitle>
 				<CardDescription>
 					Enable or disable specific settings for your organization. These
 					settings will be applied as defaults for new caps.

@@ -105,7 +105,9 @@ export function SeatManagementCard() {
 		onSuccess: (result) => {
 			setCancelDialogOpen(false);
 			if (result.cancelAtPeriodEnd) {
-				toast.success("Cap Pro will cancel at the end of the billing period");
+				toast.success(
+					"Zellia Clips Pro will cancel at the end of the billing period",
+				);
 				setDesiredQuantity(proSeatsTotal);
 				setDebouncedQuantity(proSeatsTotal);
 			} else {
@@ -154,8 +156,8 @@ export function SeatManagementCard() {
 					</span>
 					{activeOrganization?.ownerIsPro && (
 						<span className="text-xs text-gray-10">
-							The organization owner is always on Cap Pro and uses one of your
-							seats.
+							The organization owner is always on Zellia Clips Pro and uses one
+							of your seats.
 						</span>
 					)}
 				</div>
@@ -195,7 +197,7 @@ export function SeatManagementCard() {
 								<span className="text-sm text-gray-10">Calculating...</span>
 							) : isCancelRequest ? (
 								<span className="text-sm text-amber-700">
-									Cancels Cap Pro at the end of the billing period
+									Cancels Zellia Clips Pro at the end of the billing period
 								</span>
 							) : previewLoading ? (
 								<span className="text-sm text-gray-10">Calculating...</span>
@@ -248,14 +250,14 @@ export function SeatManagementCard() {
 			</div>
 			<ConfirmationDialog
 				open={cancelDialogOpen}
-				title="Cancel Cap Pro?"
+				title="Cancel Zellia Clips Pro?"
 				description={`You'll lose your Pro seat and your organization's Pro features at the end of the current billing period.${
 					baaActive
 						? " Your Signed BAA will also be canceled when the subscription ends."
 						: ""
 				} You can resume anytime before then by adding seats back.`}
 				confirmLabel="Cancel subscription"
-				cancelLabel="Keep Cap Pro"
+				cancelLabel="Keep Zellia Clips Pro"
 				confirmVariant="destructive"
 				loading={updateMutation.isPending}
 				onConfirm={() => updateMutation.mutate()}

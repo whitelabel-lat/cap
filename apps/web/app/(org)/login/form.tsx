@@ -91,7 +91,7 @@ export function LoginForm() {
 			if (error === "OAuthAccountNotLinked") {
 				setOauthError(true);
 				return toast.error(
-					"This email already has a Cap account. Sign in using your original sign-in method.",
+					"This email already has a Zellia Clips account. Sign in using your original sign-in method.",
 				);
 			} else if (error === "SsoMissingProfileAttributes") {
 				setShowOrgInput(true);
@@ -306,7 +306,7 @@ export function LoginForm() {
 					layout="position"
 					className="text-2xl font-semibold text-gray-12"
 				>
-					Sign in to Cap
+					Sign in to Zellia Clips
 				</motion.h1>
 				<motion.p
 					key="subtitle"
@@ -442,7 +442,7 @@ export function LoginForm() {
 							className="pt-3 text-xs text-center text-gray-9"
 						>
 							By typing your email and clicking continue, you acknowledge that
-							you have both read and agree to Cap's{" "}
+							you have both read and agree to our{" "}
 							<Link
 								href="/terms"
 								target="_blank"

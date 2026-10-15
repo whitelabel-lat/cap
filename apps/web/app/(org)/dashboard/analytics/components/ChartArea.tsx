@@ -14,7 +14,7 @@ export const description = "An area chart with gradient fill";
 const chartConfig = {
 	views: {
 		label: "Views",
-		color: "#3b82f6",
+		color: "#6488AD",
 	},
 	comments: {
 		label: "Comments",
@@ -25,7 +25,7 @@ const chartConfig = {
 		color: "#f97316",
 	},
 	caps: {
-		label: "Caps",
+		label: "Videos",
 		color: "var(--gray-12)",
 	},
 } satisfies ChartConfig;
@@ -172,8 +172,8 @@ function ChartArea({ selectedMetrics, data, isLoading }: ChartAreaProps) {
 						</feMerge>
 					</filter>
 					<linearGradient id={viewsGradientId} x1="0" y1="0" x2="0" y2="1">
-						<stop offset="5%" stopColor="#3b82f6" stopOpacity={0.5} />
-						<stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+						<stop offset="5%" stopColor="#6488AD" stopOpacity={0.5} />
+						<stop offset="95%" stopColor="#6488AD" stopOpacity={0} />
 					</linearGradient>
 					<linearGradient id={commentsGradientId} x1="0" y1="0" x2="0" y2="1">
 						<stop offset="5%" stopColor="#ec4899" stopOpacity={0.5} />
@@ -194,7 +194,7 @@ function ChartArea({ selectedMetrics, data, isLoading }: ChartAreaProps) {
 						type="monotone"
 						fill={`url(#${viewsGradientId})`}
 						fillOpacity={0.4}
-						stroke="#3b82f6"
+						stroke="#6488AD"
 						strokeWidth={1}
 						filter={`url(#${glowFilterId})`}
 					/>

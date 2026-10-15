@@ -32,7 +32,7 @@ export const UploadPlaceholderCard = () => {
 					/>
 				) : (
 					<div className="flex justify-center items-center w-full h-full">
-						<LogoSpinner className="w-8 h-8 animate-spin" />
+						<LogoSpinner className="w-8 h-8" />
 					</div>
 				)}
 

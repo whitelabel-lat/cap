@@ -139,7 +139,7 @@ const ProgressCircle = ({
 	progressTextClassName?: string;
 	subTextClassName?: string;
 }) => {
-	const strokeColor = status === "uploading" ? "#3b82f6" : "#22c55e";
+	const strokeColor = status === "uploading" ? "#6488AD" : "#22c55e";
 
 	const getStatusText = () => {
 		switch (status) {
