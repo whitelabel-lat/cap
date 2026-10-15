@@ -377,7 +377,7 @@ app.get(
 
 					await sendEmail({
 						email: user.email,
-						subject: "You created your first Cap! 🥳",
+						subject: "You created your first video! 🥳",
 						react: FirstShareableLink({
 							email: user.email,
 							url: videoUrl,

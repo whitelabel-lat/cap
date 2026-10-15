@@ -635,7 +635,7 @@ export function CapVideoPlayer({
 	const rawPlaybackBadgeDescription =
 		uploadProgressRaw?.status === "error"
 			? "The processed version is unavailable right now, so this page is playing the original uploaded file instead."
-			: "This page is temporarily playing the original uploaded file while Cap finishes processing the optimized version for smoother playback and broader compatibility.";
+			: "This page is temporarily playing the original uploaded file while Zellia Clips finishes processing the optimized version for smoother playback and broader compatibility.";
 	const blockPlaybackControls =
 		((blockPlaybackDuringProcessing || !videoLoaded) && hasActiveProgress) ||
 		showUploadFailureOverlay;
@@ -693,7 +693,7 @@ export function CapVideoPlayer({
 				)}
 			>
 				<div className="flex flex-col gap-2 items-center">
-					<LogoSpinner className="w-8 h-auto animate-spin sm:w-10" />
+					<LogoSpinner className="w-8 h-auto sm:w-10" />
 				</div>
 			</div>
 			{showRawPlaybackBadge && (

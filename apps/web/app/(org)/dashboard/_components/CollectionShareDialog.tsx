@@ -105,7 +105,9 @@ export const CollectionShareDialog = ({
 							<div
 								className={clsx(
 									"flex justify-center items-center rounded-full transition-colors size-9 shrink-0",
-									isPublic ? "text-blue-9 bg-blue-3" : "text-gray-11 bg-gray-3",
+									isPublic
+										? "text-blue-11 bg-blue-3"
+										: "text-gray-11 bg-gray-3",
 								)}
 							>
 								<FontAwesomeIcon
@@ -265,7 +267,7 @@ export const CollectionShareDialog = ({
 									{settings.layout === "grid" && (
 										<SettingRow
 											label="Columns"
-											description="Caps shown per row"
+											description="Videos shown per row"
 										>
 											<Select
 												size="sm"

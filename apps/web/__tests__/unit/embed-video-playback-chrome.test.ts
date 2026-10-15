@@ -167,13 +167,15 @@ const createProps = (
 const expectChromeVisible = (container: HTMLElement) => {
 	expect(container.textContent).toContain("Test video");
 	expect(
-		container.querySelector('[aria-label="Powered by Cap"]'),
+		container.querySelector('[aria-label="Powered by Zellia Clips"]'),
 	).not.toBeNull();
 };
 
 const expectChromeHidden = (container: HTMLElement) => {
 	expect(container.textContent).not.toContain("Test video");
-	expect(container.querySelector('[aria-label="Powered by Cap"]')).toBeNull();
+	expect(
+		container.querySelector('[aria-label="Powered by Zellia Clips"]'),
+	).toBeNull();
 };
 
 describe("EmbedVideo playback chrome", () => {
@@ -389,7 +391,9 @@ describe.each([
 			const expectBranding = () => {
 				expect(container.textContent).toContain("Test video");
 				expect(
-					Boolean(container.querySelector('[aria-label="Powered by Cap"]')),
+					Boolean(
+						container.querySelector('[aria-label="Powered by Zellia Clips"]'),
+					),
 				).toBe(expected === "cap");
 				expect(Boolean(container.querySelector("[data-cap-logo]"))).toBe(
 					expected === "cap",

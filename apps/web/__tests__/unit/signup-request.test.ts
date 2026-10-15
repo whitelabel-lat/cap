@@ -18,7 +18,10 @@ const env = vi.hoisted(() => ({
 
 vi.mock("@cap/env", () => ({
 	serverEnv: () => env,
-	buildEnv: { NEXT_PUBLIC_IS_CAP: false },
+	buildEnv: {
+		NEXT_PUBLIC_IS_CAP: false,
+		NEXT_PUBLIC_WEB_URL: "https://clips.example.com",
+	},
 }));
 vi.mock("@cap/database/emails/config", () => ({
 	sendEmail: mocks.sendEmail,
@@ -71,7 +74,9 @@ describe("notifySignupRequest", () => {
 			.find((a) => a.email === "hola@whitelabel.lat");
 		if (!team) throw new Error("no team email");
 
-		expect(team.subject).toBe("Solicitud de acceso a Loom: ext@gmail.com");
+		expect(team.subject).toBe(
+			"Solicitud de acceso a Zellia Clips: ext@gmail.com",
+		);
 		const html = await render(team.react);
 		expect(html).toContain("ext@gmail.com");
 		expect(html).toContain("Ana Externa");

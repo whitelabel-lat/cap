@@ -68,7 +68,9 @@ const FolderCard = ({
 	const moveEnabled = canMove ?? !spaceId;
 	const effectiveMoveRootLabel =
 		moveRootLabel ??
-		(!spaceId ? "My Caps" : (activeOrganization?.organization.name ?? "Space"));
+		(!spaceId
+			? "My Videos"
+			: (activeOrganization?.organization.name ?? "Space"));
 	const moveLocation = resolveMoveLocation(
 		spaceId,
 		activeOrganization?.organization.id,
@@ -443,7 +445,7 @@ const FolderCard = ({
 						)}
 					>
 						{publicEnabled && isList && (
-							<span className="inline-flex gap-1 items-center text-[11px] font-medium text-blue-9">
+							<span className="inline-flex gap-1 items-center text-[11px] font-medium text-blue-11">
 								<FontAwesomeIcon icon={faGlobe} className="size-2.5" />
 								Public
 							</span>
@@ -455,7 +457,7 @@ const FolderCard = ({
 							)}
 						>{`${videoCount} ${videoCount === 1 ? "video" : "videos"}`}</p>
 						{publicEnabled && !isList && (
-							<span className="inline-flex gap-1 items-center text-[11px] font-medium text-blue-9">
+							<span className="inline-flex gap-1 items-center text-[11px] font-medium text-blue-11">
 								<FontAwesomeIcon icon={faGlobe} className="size-2.5" />
 								Public
 							</span>

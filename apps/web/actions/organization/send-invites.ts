@@ -12,6 +12,7 @@ import {
 	users,
 } from "@cap/database/schema";
 import { serverEnv } from "@cap/env";
+import { BRAND_NAME } from "@cap/utils/brand";
 import type { Organisation } from "@cap/web-domain";
 import { and, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -174,7 +175,7 @@ export async function sendOrganizationInvites(
 			const inviteUrl = `${serverEnv().WEB_URL}/invite/${record.id}`;
 			return sendEmail({
 				email: record.email,
-				subject: `Invitation to join ${organization.name} on Cap`,
+				subject: `Invitation to join ${organization.name} on ${BRAND_NAME}`,
 				react: OrganizationInvite({
 					email: record.email,
 					url: inviteUrl,

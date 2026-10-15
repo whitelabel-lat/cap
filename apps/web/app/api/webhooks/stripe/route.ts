@@ -10,6 +10,7 @@ import {
 } from "@cap/database/schema";
 import { serverEnv } from "@cap/env";
 import { isProSubscription, isSsoSubscription, stripe } from "@cap/utils";
+import { BRAND_NAME } from "@cap/utils/brand";
 import { Organisation, User } from "@cap/web-domain";
 import { and, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -849,8 +850,8 @@ export const POST = async (req: Request) => {
 				await sendEmail({
 					email: dbUser.email,
 					subject: finalAttempt
-						? "Last chance to keep your Cap Pro subscription"
-						: "Your Cap Pro payment didn't go through",
+						? `Last chance to keep your ${BRAND_NAME} Pro subscription`
+						: `Your ${BRAND_NAME} Pro payment didn't go through`,
 					react: PaymentFailed({
 						email: dbUser.email,
 						billingUrl: `${serverEnv().WEB_URL}/dashboard/settings/organization`,

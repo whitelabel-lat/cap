@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { serverEnv } from "@cap/env";
+import { BRAND_NAME } from "@cap/utils/brand";
 import { User } from "@cap/web-domain";
 import { eq } from "drizzle-orm";
 import type { NextAuthOptions } from "next-auth";
@@ -173,7 +174,7 @@ export const authOptions = (ssoContext?: SsoAuthContext): NextAuthOptions => {
 							const email = OTPEmail({ code: token, email: identifier });
 							await sendEmail({
 								email: identifier,
-								subject: `Your Cap Verification Code`,
+								subject: `Your ${BRAND_NAME} Verification Code`,
 								react: email,
 							});
 						}

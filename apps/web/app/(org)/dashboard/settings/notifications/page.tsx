@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { NotificationsSettings } from "./NotificationsSettings";
 
 export const metadata: Metadata = {
-	title: "Notification Settings — Cap",
+	title: "Notification Settings",
 };
 
 export default function NotificationsSettingsPage() {

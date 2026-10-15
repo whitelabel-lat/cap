@@ -27,6 +27,7 @@ Objetivo: una sola organización para todo el equipo, todos los videos visibles 
 | Borrar un video borra también sus filas en `shared_videos`, `space_videos`, `comments`, `notifications` y `video_edits` (upstream solo borraba video, subida, importado y job) | `packages/web-backend/src/Videos/VideosRepo.ts` (`delete_`); test `__tests__/unit/video-delete-dependents.test.ts` | siempre |
 | Script que borra filas huérfanas de videos ya borrados | `scripts/whitelabel/clean-orphan-shares.sql` | manual, idempotente |
 | Script que genera la miniatura y el GIF de videos que nunca pasaron por el media-server, sin tocar `result.mp4` ni la base | `scripts/whitelabel/regenerate-previews.mjs` | manual (ver "Miniaturas y GIF de videos viejos") |
+| Marca Zellia Clips (nombre, logos, favicons, OG, emails, colores, tipografía) | Ver "Marca (Zellia Clips)" | siempre |
 
 Detalles:
 
@@ -38,6 +39,30 @@ Detalles:
 - El onboarding no renombra la organización compartida: solo el owner puede editarla.
 - Borrado de videos: todas las rutas de la UI, escritorio, extensión y RPC pasan por `Videos.delete` → `VideosRepo.delete`, que ahora borra el mismo conjunto de filas que upstream ya borra en la operación de agente (`deleteCapDatabase` en `workflows/agent-cap-operation.ts`) y en la API v1. El borrado de organizaciones (`Organisations/index.ts`) ya limpiaba `shared_videos`. No hay borrado de usuarios en la web. `video_edits` y `video_viewer_grants` tienen FK `ON DELETE CASCADE` en la base.
 - Tests nuevos: `apps/web/__tests__/unit/default-organization.test.ts`, `auto-share-video.test.ts`. `recording-storage-lifecycle.test.ts` mockea `@cap/database/auto-share` (su `serverEnv()` no está disponible en ese test).
+
+## Marca (Zellia Clips)
+
+El producto se muestra como **Zellia Clips** (marca Zellia). Todo el cambio de marca está centralizado; no hay capa i18n en `apps/web`, así que solo se tocaron las superficies visibles para el usuario (video, embed, colecciones, dashboard, login, emails). Quedaron con "Cap" a propósito: apps de escritorio/móvil/extensión/CLI (siguen siendo "Cap"), páginas de marketing `(site)`, `(docs)` y blog, textos legales/BAA/HIPAA y los remitentes de Cap cloud (`NEXT_PUBLIC_IS_CAP`).
+
+| Qué | Dónde |
+|---|---|
+| Nombre, descripción, colores, rutas de logos, URL del código fuente (AGPL) | `packages/utils/src/brand.ts` (`@cap/utils/brand`); `brandAssetUrl()` arma URLs absolutas |
+| Trazos SVG del logo (generado, no editar a mano) | `packages/utils/src/brand-shapes.ts` |
+| Componentes de logo (mantienen props: `white`, `hideLogoName`) | `packages/ui/src/components/icons/Logo.tsx`, `LogoBadge.tsx`, `LogoSpinner.tsx` (el spinner anima el anillo y respeta `prefers-reduced-motion`; los usos ya no llevan `animate-spin`) |
+| Favicons (isotipo sobre baldosa blanca redondeada, legible en pestañas oscuras), PWA, apple-touch, mstile, safari-pinned-tab, `og.png`, `logos/zellia/*`, `site.webmanifest`, `browserconfig.xml` | `apps/web/public/` |
+| Metadata (título `Zellia Clips`; plantilla `%s \| Zellia Clips` solo en `(org)`, y `brandTitle()` en las páginas públicas; descripción en español, `metadataBase` desde `NEXT_PUBLIC_WEB_URL`/`WEB_URL`) y tipografía Inter (`public/fonts/Inter-Variable-latin.woff2`) | `apps/web/app/layout.tsx` |
+| Imágenes OG dinámicas (`/api/og`, tarjeta por video) y miniatura sin imagen (isotipo sobre azul Zellia) | `apps/web/lib/og/`, `components/VideoThumbnail.tsx`; fuente Inter TTF en `lib/og/fonts/` |
+| Emails (logo PNG absoluto desde `WEB_URL`, textos) | `packages/database/emails/` (`emailLogoUrl()` en `brand.ts`) |
+| Tokens | `apps/web/app/globals.css` (`--primary` #023562, `--secondary` #5799BA, `--blue-1..12` claro y oscuro derivados de la escala primaria de Zellia; HSL de shadcn `--primary`/`--ring`) y `packages/ui/style/tailwind.config.js` (`blue-50..950` y escala `accent` #FC4501; `accent` sin número sigue siendo el fondo de hover de shadcn) |
+| Enlace "Código fuente" (obligación AGPL) | pie de la barra lateral (`Navbar/Items.tsx`) |
+| Test guardián | `apps/web/__tests__/unit/zellia-brand.test.ts` (falla si reaparece "cap.so", "Powered by Cap" o el azul viejo en los archivos clave) |
+
+Los assets públicos (logos, iconos, manifest, fuentes) deben pasar el redirect a `/login` del proxy: la lista está en `apps/web/lib/public-static-assets.ts` (test `proxy-public-assets.test.ts`); un archivo nuevo en `public/` que deba verse sin sesión (por ejemplo desde un correo) hay que añadirlo ahí. `metadataBase` sale de `WEB_URL` en tiempo de petición; las rutas estáticas lo fijan en el build (con la URL que tenga el build), y el título con plantilla `| Zellia Clips` solo aplica a las rutas de `(org)`.
+
+Regenerar los assets (requiere `google-chrome` y `ffmpeg`): `node scripts/whitelabel/brand/build-brand.mjs`. Las fuentes son los SVG originales de Zellia copiados en `scripts/whitelabel/brand/src/` (viewBox recortado al dibujo). El script reescribe los SVG, los PNG/ICO, `brand-shapes.ts` y `og.png`.
+
+Contraste (AA): botón `blue-9` + texto blanco, 13:1 (claro) y 6,6:1 (oscuro, `#2B5F94`); texto `blue-11` sobre blanco 8:1 y sobre `blue-3` 7:1 (claro), `#8FB4DE` sobre fondo oscuro 8:1.
+Al hacer merge de upstream: buscar `git grep "whitelabel fork"` y revisar `globals.css`, `layout.tsx`, los tres componentes de logo y `lib/og/template.tsx` (ahí upstream puede reintroducir las maquetas de Cap).
 
 ## Variables de entorno
 
@@ -51,7 +76,7 @@ Nuevas (todas opcionales):
 | `CAP_AUTO_SHARE_TO_ORG` | `true` | Comparte cada video nuevo con su organización |
 | `CAP_VIDEOS_DEFAULT_PUBLIC` | `false` | Videos nuevos privados (upstream: `true`) |
 | `CAP_ALLOWED_SIGNUP_DOMAINS` | `whitelabel.lat` | Solo estos dominios pueden crear una cuenta nueva. Excepción: un correo externo puede registrarse si tiene una invitación pendiente a una organización (`organization_invites`, `status='pending'`, sin vencer) o una invitación de espectador de video activa (`video_viewer_grants`, sin revocar), **y solo si quien invitó (`invitedByUserId`) tiene un correo de un dominio permitido**: una invitación hecha por un externo no cuenta. Igual para crear cuentas por otros (`provisionOrganizationInvitee`: invitaciones sin correo, importación CSV de Loom, owner de importación Loom en la API v1): un correo fuera de la lista solo se crea si quien actúa es de un dominio permitido. Los usuarios existentes siempre pueden entrar y `CAP_BLOCKED_SIGNUP_DOMAINS` sigue ganando. Un externo invitado no entra a la organización por defecto (solo `CAP_DEFAULT_ORG_EMAIL_DOMAINS`): entra a la que lo invitó. Lógica en `packages/database/auth/signup-invite.ts`, usada en el callback `signIn` y en la ruta móvil. Sin definir = registro abierto |
-| `CAP_SIGNUP_REQUEST_NOTIFY_EMAIL` | `hola@whitelabel.lat` | Correo del equipo que recibe "Solicitud de acceso a Loom: <correo>" cuando `CAP_ALLOWED_SIGNUP_DOMAINS` rechaza a una persona nueva (sin invitación). Sin definir = no se avisa al equipo (la persona igual recibe su confirmación). El correo incluye quién (correo y nombre si el proveedor lo da), cuándo (hora de Bogotá), método (Google / código por email / Apple / app móvil) y un botón a `/dashboard/settings/organization/members`. A la persona se le envía "Recibimos tu solicitud de acceso" (sin enlaces). En la web el callback `signIn` redirige a `/login?error=SignupRequestReceived` (mensaje en español en la página de login); en la ruta móvil responde 403 con `code: "SignupRequestReceived"` y mensaje. **No** aplica a `CAP_BLOCKED_SIGNUP_DOMAINS` (siguen en silencio). Anti-abuso (con código por email el callback corre antes de probar que el correo es suyo): máximo **un par de correos por dirección cada 24 h** y **20 pares por hora** en total; pasado el tope solo `console.warn`. El control está **en memoria** (`packages/database/auth/signup-request.ts`): válido porque hay una sola instancia web; un reinicio lo reinicia. Envío sin esperar (fire-and-forget): un fallo de Resend se registra y nunca cambia el rechazo. Hay que aprobar a alguien invitándolo desde Miembros |
+| `CAP_SIGNUP_REQUEST_NOTIFY_EMAIL` | `hola@whitelabel.lat` | Correo del equipo que recibe "Solicitud de acceso a Zellia Clips: <correo>" cuando `CAP_ALLOWED_SIGNUP_DOMAINS` rechaza a una persona nueva (sin invitación). Sin definir = no se avisa al equipo (la persona igual recibe su confirmación). El correo incluye quién (correo y nombre si el proveedor lo da), cuándo (hora de Bogotá), método (Google / código por email / Apple / app móvil) y un botón a `/dashboard/settings/organization/members`. A la persona se le envía "Recibimos tu solicitud de acceso" (sin enlaces). En la web el callback `signIn` redirige a `/login?error=SignupRequestReceived` (mensaje en español en la página de login); en la ruta móvil responde 403 con `code: "SignupRequestReceived"` y mensaje. **No** aplica a `CAP_BLOCKED_SIGNUP_DOMAINS` (siguen en silencio). Anti-abuso (con código por email el callback corre antes de probar que el correo es suyo): máximo **un par de correos por dirección cada 24 h** y **20 pares por hora** en total; pasado el tope solo `console.warn`. El control está **en memoria** (`packages/database/auth/signup-request.ts`): válido porque hay una sola instancia web; un reinicio lo reinicia. Envío sin esperar (fire-and-forget): un fallo de Resend se registra y nunca cambia el rechazo. Hay que aprobar a alguien invitándolo desde Miembros |
 
 `CRON_SECRET` no es nueva (la leen las rutas `/api/cron/*` de upstream), pero autoalojado hay que ponerla a mano: ver "Crons".
 
@@ -119,8 +144,8 @@ git grep "whitelabel fork"     # revisar que nuestros cambios sigan
 
 | Dato | Valor |
 |---|---|
-| URL | https://loom.lab.whitelabel.lat (videos: `/s/<id>`, mismos enlaces que antes) |
-| S3 público | https://s3.loom.lab.whitelabel.lat (MinIO, bucket `capso`) |
+| URL | https://clips.zellia.io (videos: `/s/<id>`). El dominio viejo `loom.lab.whitelabel.lat` sigue asociado a cap-web para que los enlaces antiguos funcionen; las cookies son por dominio, así que cada persona debe iniciar sesión de nuevo en el dominio nuevo |
+| S3 público | https://s3.loom.lab.whitelabel.lat (MinIO, bucket `capso`; no cambió con el dominio de la app) |
 | Servidor | `ssh vanguardistas` (177.7.42.143), Dokploy v0.30.8 |
 | Dokploy | org `W Lab` → proyecto `Loom` → env `production` |
 | cap-web | application `loom-capweb-qcmdip`: git `https://github.com/whitelabel-lat/cap.git` rama `main`, Dockerfile `apps/web/Dockerfile`, contexto `.`, puerto 3000. Corre las migraciones al arrancar. Volumen `loom-capweb-qcmdip-workflow` → `/app/.workflow-data` (estado de los workflows) |
@@ -161,9 +186,9 @@ ssh vanguardistas 'TS=$(date +%Y%m%d-%H%M); M=$(docker ps -q -f name=loom-mysql-
 
 ## Variables en producción (pestaña Environment de cada servicio en Dokploy; solo nombres)
 
-- **cap-web**: `NODE_ENV`, `WEB_URL`, `NEXTAUTH_URL` (`https://loom.lab.whitelabel.lat`), `DATABASE_URL` (`mysql://root:…@loom-mysql-okdbu1:3306/planetscale?ssl={"rejectUnauthorized":false}`), `DATABASE_ENCRYPTION_KEY` y `NEXTAUTH_SECRET` (**idénticos a los del stack viejo**: si cambian, los datos cifrados y las sesiones se rompen), `CAP_AWS_ACCESS_KEY`, `CAP_AWS_SECRET_KEY`, `CAP_AWS_BUCKET` (`capso`), `CAP_AWS_REGION`, `S3_PUBLIC_ENDPOINT` (`https://s3.loom.lab.whitelabel.lat`), `S3_INTERNAL_ENDPOINT` (`http://loom-minio-7q612h:3902`), `S3_PATH_STYLE=true`, `RESEND_API_KEY`, `RESEND_FROM_DOMAIN`, `OPENAI_API_KEY`, `ASSEMBLY_API_KEY`, `MEDIA_SERVER_URL` (`http://loom-mediaserver-wtljt9:3456`), `MEDIA_SERVER_WEBHOOK_URL` (`http://loom-capweb-qcmdip:3000`), `MEDIA_SERVER_WEBHOOK_SECRET`, `PORT=3000` y `WORKFLOW_LOCAL_DATA_DIR=/app/.workflow-data` (runtime de workflows, ver trampas), `CRON_SECRET` (mismo valor que en el servicio cron), y las cinco del fork (tabla de arriba).
+- **cap-web**: `NODE_ENV`, `WEB_URL`, `NEXTAUTH_URL` (`https://clips.zellia.io`, igual que `WEB_URL`), `DATABASE_URL` (`mysql://root:…@loom-mysql-okdbu1:3306/planetscale?ssl={"rejectUnauthorized":false}`), `DATABASE_ENCRYPTION_KEY` y `NEXTAUTH_SECRET` (**idénticos a los del stack viejo**: si cambian, los datos cifrados y las sesiones se rompen), `CAP_AWS_ACCESS_KEY`, `CAP_AWS_SECRET_KEY`, `CAP_AWS_BUCKET` (`capso`), `CAP_AWS_REGION`, `S3_PUBLIC_ENDPOINT` (`https://s3.loom.lab.whitelabel.lat`), `S3_INTERNAL_ENDPOINT` (`http://loom-minio-7q612h:3902`), `S3_PATH_STYLE=true`, `RESEND_API_KEY`, `RESEND_FROM_DOMAIN`, `OPENAI_API_KEY`, `ASSEMBLY_API_KEY`, `MEDIA_SERVER_URL` (`http://loom-mediaserver-wtljt9:3456`), `MEDIA_SERVER_WEBHOOK_URL` (`http://loom-capweb-qcmdip:3000`), `MEDIA_SERVER_WEBHOOK_SECRET`, `PORT=3000` y `WORKFLOW_LOCAL_DATA_DIR=/app/.workflow-data` (runtime de workflows, ver trampas), `CRON_SECRET` (mismo valor que en el servicio cron), y las cinco del fork (tabla de arriba).
 - **cron**: `CAP_WEB_URL=http://loom-capweb-qcmdip:3000`, `CRON_SECRET` (aleatorio de 64 hex, `openssl rand -hex 32`; idéntico al de cap-web, si difiere todas las llamadas dan 401).
-- **media-server**: `PORT=3456`, `MEDIA_SERVER_WEBHOOK_SECRET` (mismo valor que en cap-web; si falta o difiere, el media-server rechaza todo), `MEDIA_SERVER_WEB_ORIGIN=https://loom.lab.whitelabel.lat`.
+- **media-server**: `PORT=3456`, `MEDIA_SERVER_WEBHOOK_SECRET` (mismo valor que en cap-web; si falta o difiere, el media-server rechaza todo), `MEDIA_SERVER_WEB_ORIGIN=https://clips.zellia.io`.
 - **minio**: `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD` (copiadas del stack viejo).
 - `DEEPGRAM_API_KEY` ya no se lee (upstream pasó a AssemblyAI) y no se configuró.
 

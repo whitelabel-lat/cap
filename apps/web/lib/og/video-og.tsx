@@ -1,9 +1,10 @@
+import { BRAND_COLORS } from "@cap/utils/brand";
 import { ImageResponse } from "next/og";
-import { loadOgAssets } from "@/lib/og/assets";
 import { loadOgFonts, OG_MONO } from "@/lib/og/fonts";
 import {
 	Body,
-	CapWordmark,
+	BrandIsotypeArt,
+	BrandWordmark,
 	Headline,
 	MeshFrame,
 	OG_HEIGHT,
@@ -140,16 +141,13 @@ const ThumbnailImage = ({ thumbnail }: { thumbnail: OgThumbnail }) => {
 };
 
 const Thumbnail = ({
-	mesh,
 	thumbnail,
 	duration,
 }: {
-	mesh: string;
 	thumbnail?: OgThumbnail;
 	duration?: number;
 }) => (
 	<MeshFrame
-		mesh={mesh}
 		width={THUMB_W + FRAME_PAD * 2}
 		height={THUMB_H + FRAME_PAD * 2}
 		padding={FRAME_PAD}
@@ -164,7 +162,7 @@ const Thumbnail = ({
 				overflow: "hidden",
 				alignItems: "center",
 				justifyContent: "center",
-				background: thumbnail ? "#0B0F17" : "rgba(255,255,255,0.35)",
+				background: thumbnail ? "#0B0F17" : BRAND_COLORS.primary,
 				boxShadow: "0 0 0 1px rgba(17,24,39,0.06)",
 			}}
 		>
@@ -183,6 +181,7 @@ const Thumbnail = ({
 					}}
 				/>
 			)}
+			{!thumbnail && <BrandIsotypeArt height={170} light />}
 			<PlayButton size={96} />
 			{duration != null && duration > 0 && (
 				<div
@@ -236,10 +235,9 @@ const videoTitleSize = (title: string) => {
 const videoLayout = (
 	video: VideoOgData,
 	thumbnail: OgThumbnail | undefined,
-	assets: Awaited<ReturnType<typeof loadOgAssets>>,
 ) => {
 	return (
-		<OgCanvas background={assets.skySplit}>
+		<OgCanvas>
 			<div
 				style={{
 					display: "flex",
@@ -248,11 +246,7 @@ const videoLayout = (
 					top: Math.round((OG_HEIGHT - THUMB_H - FRAME_PAD * 2) / 2) + 20,
 				}}
 			>
-				<Thumbnail
-					mesh={assets.mesh}
-					thumbnail={thumbnail}
-					duration={video.duration}
-				/>
+				<Thumbnail thumbnail={thumbnail} duration={video.duration} />
 			</div>
 			<div
 				style={{
@@ -267,7 +261,7 @@ const videoLayout = (
 					justifyContent: "space-between",
 				}}
 			>
-				<CapWordmark />
+				<BrandWordmark />
 				<div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
 					<Headline size={videoTitleSize(video.title)} lines={4}>
 						{video.title}
@@ -295,19 +289,16 @@ const videoLayout = (
 	);
 };
 
-const statusLayout = (
-	{
-		heading,
-		subline,
-		icon,
-	}: {
-		heading: string;
-		subline: string;
-		icon: "lock" | "search";
-	},
-	assets: Awaited<ReturnType<typeof loadOgAssets>>,
-) => (
-	<OgCanvas background={assets.skyCenter}>
+const statusLayout = ({
+	heading,
+	subline,
+	icon,
+}: {
+	heading: string;
+	subline: string;
+	icon: "lock" | "search";
+}) => (
+	<OgCanvas>
 		<div
 			style={{
 				display: "flex",
@@ -322,7 +313,7 @@ const statusLayout = (
 				justifyContent: "space-between",
 			}}
 		>
-			<CapWordmark />
+			<BrandWordmark />
 			<div
 				style={{
 					display: "flex",
@@ -362,43 +353,34 @@ const statusLayout = (
 export async function renderVideoOg(variant: VideoOgVariant) {
 	const screenshotUrl =
 		variant.kind === "video" ? variant.video.screenshotUrl : undefined;
-	const [fonts, assets, thumbnail] = await Promise.all([
+	const [fonts, thumbnail] = await Promise.all([
 		loadOgFonts(),
-		loadOgAssets(),
 		screenshotUrl ? loadOgThumbnail(screenshotUrl) : undefined,
 	]);
 	const element = (() => {
 		switch (variant.kind) {
 			case "video":
-				return videoLayout(variant.video, thumbnail, assets);
+				return videoLayout(variant.video, thumbnail);
 			case "locked":
-				return statusLayout(
-					{
-						heading: "This Cap is private",
-						subline: "Ask the owner for access, or sign in to watch it on Cap.",
-						icon: "lock",
-					},
-					assets,
-				);
+				return statusLayout({
+					heading: "This video is private",
+					subline:
+						"Ask the owner for access, or sign in to watch it on Zellia Clips.",
+					icon: "lock",
+				});
 			case "password":
-				return statusLayout(
-					{
-						heading: "This Cap is password protected",
-						subline: "Enter the password on Cap to watch this recording.",
-						icon: "lock",
-					},
-					assets,
-				);
+				return statusLayout({
+					heading: "This video is password protected",
+					subline:
+						"Enter the password on Zellia Clips to watch this recording.",
+					icon: "lock",
+				});
 			case "not-found":
-				return statusLayout(
-					{
-						heading: "This Cap doesn't exist",
-						subline:
-							"The recording you're looking for has moved or was deleted.",
-						icon: "search",
-					},
-					assets,
-				);
+				return statusLayout({
+					heading: "This video doesn't exist",
+					subline: "The recording you're looking for has moved or was deleted.",
+					icon: "search",
+				});
 		}
 	})();
 

@@ -465,7 +465,7 @@ const InlineChunkProgress = ({
 		? "text-red-9"
 		: completedCount === chunkUploads.length
 			? "text-green-9"
-			: "text-blue-9";
+			: "text-blue-11";
 
 	const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 	const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);

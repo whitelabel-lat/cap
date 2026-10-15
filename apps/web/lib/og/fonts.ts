@@ -8,8 +8,7 @@ export type OgFont = {
 	style: "normal";
 };
 
-export const OG_SANS = "Instrument Sans";
-export const OG_SERIF = "Source Serif";
+export const OG_SANS = "Inter";
 export const OG_MONO = "DM Mono";
 
 let fontsPromise: Promise<OgFont[]> | null = null;
@@ -35,9 +34,8 @@ const loadFont = async (
 
 export const loadOgFonts = () => {
 	fontsPromise ??= Promise.all([
-		loadFont(OG_SANS, "InstrumentSans-Regular.ttf", 400),
-		loadFont(OG_SANS, "InstrumentSans-Medium.ttf", 500),
-		loadFont(OG_SERIF, "SourceSerif4-Light.ttf", 300),
+		loadFont(OG_SANS, "Inter-Regular.ttf", 400),
+		loadFont(OG_SANS, "Inter-Medium.ttf", 500),
 		loadFont(OG_MONO, "DMMono-Regular.ttf", 400),
 		loadFont(OG_MONO, "DMMono-Medium.ttf", 500),
 	]).catch((error) => {

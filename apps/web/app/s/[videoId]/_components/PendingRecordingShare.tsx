@@ -32,7 +32,7 @@ export function PendingRecordingShare() {
 
 	return (
 		<div className="flex flex-col justify-center items-center p-4 min-h-screen text-center bg-gray-2">
-			<LogoSpinner className="mb-6 w-10 h-auto animate-spin" />
+			<LogoSpinner className="mb-6 w-10 h-auto" />
 			<h1 className="mb-2 text-2xl font-semibold text-gray-12">
 				Preparing your recording
 			</h1>

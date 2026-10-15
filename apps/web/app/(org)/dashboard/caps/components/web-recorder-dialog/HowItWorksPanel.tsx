@@ -15,7 +15,7 @@ const HOW_IT_WORKS_ITEMS = [
 		description:
 			"On compatible browsers, your capture uploads in the background while you record. Otherwise, it records first and uploads right after you stop.",
 		Icon: CloudUploadIcon,
-		accent: "bg-blue-3 text-blue-11 dark:bg-blue-4 dark:text-blue-10",
+		accent: "bg-blue-3 text-blue-11 dark:bg-blue-4 dark:text-blue-11",
 	},
 	{
 		title: "Instant shareable link",

@@ -70,7 +70,7 @@ const ANNUAL_SAVINGS_PERCENT = Math.round(
 	(1 - PRICING.pro.annualPerMonth / PRICING.pro.monthly) * 100,
 );
 
-const iconStyling = "text-blue-500 size-4";
+const iconStyling = "text-blue-500 dark:text-blue-400 size-4";
 
 const PRO_FEATURES = [
 	{
@@ -302,7 +302,7 @@ const UpgradeModalImpl = ({
 													className={[
 														"rounded-full px-2 py-0.5 text-[11px] font-semibold transition-colors",
 														isAnnual
-															? "bg-blue-500/10 text-blue-500"
+															? "bg-blue-500/10 text-blue-500 dark:text-blue-400"
 															: "bg-gray-4 text-gray-10",
 													].join(" ")}
 												>

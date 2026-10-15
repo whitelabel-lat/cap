@@ -54,7 +54,7 @@ export function DashboardBackLink({
 	);
 
 	// A plain link would let a new tab skip the switch and open the dashboard
-	// in an organization that doesn't hold this Cap.
+	// in an organization that doesn't hold this video.
 	if (switchOrganizationId) {
 		const switchAndGoBack = async () => {
 			setIsSwitching(true);

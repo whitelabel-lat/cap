@@ -299,7 +299,7 @@ export const ImportLoomPage = ({
 		spaceId,
 	};
 	const rootLabel = !spaceId
-		? "My Caps"
+		? "My Videos"
 		: spaceId === orgId
 			? (activeOrganization?.organization.name ?? "Organization")
 			: (spacesData?.find((space) => space.id === spaceId)?.name ?? "Space");
@@ -599,7 +599,7 @@ export const ImportLoomPage = ({
 						<p className="mt-1 max-w-xl text-sm text-gray-10">
 							{canUseCsvImport
 								? "Bring a single Loom video into Cap, or bulk import recordings for organization members and new users from a CSV."
-								: "Paste a Loom share link to bring it into Cap."}
+								: "Paste a Loom share link to bring it into Zellia Clips."}
 						</p>
 					</div>
 				</div>
@@ -713,7 +713,7 @@ export const ImportLoomPage = ({
 										</Button>
 										{spaceId && (
 											<Link href="/dashboard/import/loom" className="underline">
-												Import to My Caps instead
+												Import to My Videos instead
 											</Link>
 										)}
 									</div>

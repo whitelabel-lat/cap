@@ -4,6 +4,7 @@ import { buildEnv, serverEnv } from "@cap/env";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { type NextRequest, NextResponse, userAgent } from "next/server";
+import { isPublicStaticAsset } from "@/lib/public-static-assets";
 import { getShareIframeRedirectUrl } from "@/lib/share-iframe-navigation";
 
 const addHttps = (s?: string) => {
@@ -52,6 +53,9 @@ export async function proxy(request: NextRequest) {
 	}
 
 	const hostname = url.hostname;
+
+	// whitelabel fork: brand assets (logos, icons, manifest, fonts) must stay reachable without a session, e.g. from email clients.
+	if (isPublicStaticAsset(path)) return NextResponse.next();
 
 	if (buildEnv.NEXT_PUBLIC_IS_CAP !== "true") {
 		if (

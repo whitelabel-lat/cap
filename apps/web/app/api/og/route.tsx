@@ -1,24 +1,21 @@
+import { BRAND_DESCRIPTION, BRAND_NAME } from "@cap/utils/brand";
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
-import { PRICING } from "@/data/pricing";
-import { loadOgAssets } from "@/lib/og/assets";
 import { loadOgFonts } from "@/lib/og/fonts";
 import { verifyOgSignature } from "@/lib/og/signature";
 import {
 	Body,
-	CapWordmark,
-	DesktopArt,
+	BrandIsotypeArt,
+	BrandWordmark,
 	Headline,
 	OG_HEIGHT,
 	OG_WIDTH,
 	OgCanvas,
-	PricingArt,
 	titleFontSize,
 } from "@/lib/og/template";
 
-const DEFAULT_TITLE = "Beautiful screen recordings, owned by you";
-const DEFAULT_DESCRIPTION =
-	"The open source Loom alternative. Record and share in seconds.";
+const DEFAULT_TITLE = BRAND_DESCRIPTION;
+const DEFAULT_DESCRIPTION = BRAND_NAME;
 
 // Strip control characters and collapse whitespace so arbitrary query input
 // can't distort the layout.
@@ -47,55 +44,35 @@ export async function GET(req: NextRequest) {
 		);
 
 	const title = (isSigned && clean(rawTitle, 110)) || DEFAULT_TITLE;
-	const tag = isSigned ? clean(params.get("tag"), 28) : undefined;
 	const description = isSigned
 		? clean(params.get("description"), title.length > 72 ? 0 : 150)
 		: undefined;
 	const isDefault = !isSigned;
 
-	const [fonts, assets] = await Promise.all([loadOgFonts(), loadOgAssets()]);
+	const fonts = await loadOgFonts();
 	const body = description ?? (isDefault ? DEFAULT_DESCRIPTION : undefined);
-	const art =
-		tag === "Pricing" ? (
-			<div
-				style={{ display: "flex", position: "absolute", left: 660, top: 96 }}
-			>
-				<PricingArt
-					mesh={assets.mesh}
-					pro={{
-						monthly: PRICING.pro.monthly,
-						annualPerMonth: PRICING.pro.annualPerMonth,
-						savePercent: Math.round(
-							(1 - PRICING.pro.annualPerMonth / PRICING.pro.monthly) * 100,
-						),
-					}}
-				/>
-			</div>
-		) : (
-			<div
-				style={{ display: "flex", position: "absolute", left: 668, top: 112 }}
-			>
-				<DesktopArt mesh={assets.mesh} wallpaper={assets.wallpaper} />
-			</div>
-		);
 
 	return new ImageResponse(
-		<OgCanvas background={assets.skySplit}>
-			{art}
+		<OgCanvas>
+			<div
+				style={{ display: "flex", position: "absolute", left: 800, top: 70 }}
+			>
+				<BrandIsotypeArt height={490} />
+			</div>
 			<div
 				style={{
 					display: "flex",
 					position: "absolute",
 					top: 0,
 					left: 0,
-					width: 620,
+					width: 700,
 					height: "100%",
 					padding: "58px 0 54px 64px",
 					flexDirection: "column",
 					justifyContent: "space-between",
 				}}
 			>
-				<CapWordmark />
+				<BrandWordmark />
 				<div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
 					<Headline size={titleFontSize(title)} lines={4}>
 						{title}

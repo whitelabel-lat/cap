@@ -10,15 +10,15 @@
 @tailwind utilities;
 
 :root {
-	--primary: #005cb1;
-	--primary-2: #004c93;
-	--primary-3: #003b73;
-	--secondary: #2eb4ff;
-	--secondary-2: #1696e0;
-	--secondary-3: #117ebd;
-	--tertiary: #c5eaff;
-	--tertiary-2: #d3e5ff;
-	--tertiary-3: #e0edff;
+	--primary: #023562;
+	--primary-2: #012b50;
+	--primary-3: #002041;
+	--secondary: #5799ba;
+	--secondary-2: #4a829e;
+	--secondary-3: #3d6b82;
+	--tertiary: #c8deea;
+	--tertiary-2: #d8e7f0;
+	--tertiary-3: #eef5f8;
 	--filler: #efefef;
 	--filler-2: #e4e4e4;
 	--filler-3: #e2e2e2;
@@ -32,6 +32,40 @@
 	--background-start-rgb: 214, 219, 220;
 	--background-end-rgb: 255, 255, 255;
 	--gradient-border-radius: 12px;
+}
+
+/* whitelabel fork: Zellia Clips palette. Radix blue 1-12 is remapped to the Zellia primary scale (blue-9 = brand navy #023562) in light and dark. */
+:root,
+.light,
+.light-theme {
+	--blue-1: #fafcfe;
+	--blue-2: #f5f9fe;
+	--blue-3: #e9f0f8;
+	--blue-4: #dce7f3;
+	--blue-5: #cddcec;
+	--blue-6: #b8cce1;
+	--blue-7: #9bb5d1;
+	--blue-8: #7597ba;
+	--blue-9: #023562;
+	--blue-10: #002041;
+	--blue-11: #23527f;
+	--blue-12: #00162e;
+}
+
+.dark,
+.dark-theme {
+	--blue-1: #06101d;
+	--blue-2: #0a1a2e;
+	--blue-3: #0e2744;
+	--blue-4: #123256;
+	--blue-5: #173d69;
+	--blue-6: #1e4b7e;
+	--blue-7: #2a5e98;
+	--blue-8: #3a75b5;
+	--blue-9: #2b5f94;
+	--blue-10: #356da8;
+	--blue-11: #8fb4de;
+	--blue-12: #d2e3f6;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -964,7 +998,7 @@ footer a {
 		--card-foreground: 224 71.4% 4.1%;
 		--popover: 0 0% 100%;
 		--popover-foreground: 224 71.4% 4.1%;
-		--primary: 220.9 39.3% 11%;
+		--primary: 208 96% 20%;
 		--primary-foreground: 210 20% 98%;
 		--secondary: 220 14.3% 95.9%;
 		--secondary-foreground: 220.9 39.3% 11%;
@@ -976,7 +1010,7 @@ footer a {
 		--destructive-foreground: 210 20% 98%;
 		--border: 220 13% 91%;
 		--input: 220 13% 91%;
-		--ring: 224 71.4% 4.1%;
+		--ring: 208 96% 20%;
 		--chart-1: 12 76% 61%;
 		--chart-2: 173 58% 39%;
 		--chart-3: 197 37% 24%;
@@ -991,8 +1025,8 @@ footer a {
 		--card-foreground: 210 20% 98%;
 		--popover: 224 71.4% 4.1%;
 		--popover-foreground: 210 20% 98%;
-		--primary: 210 20% 98%;
-		--primary-foreground: 220.9 39.3% 11%;
+		--primary: 211 56% 70%;
+		--primary-foreground: 208 96% 12%;
 		--secondary: 215 27.9% 16.9%;
 		--secondary-foreground: 210 20% 98%;
 		--muted: 215 27.9% 16.9%;
@@ -1003,7 +1037,7 @@ footer a {
 		--destructive-foreground: 210 20% 98%;
 		--border: 215 27.9% 16.9%;
 		--input: 215 27.9% 16.9%;
-		--ring: 216 12.2% 83.9%;
+		--ring: 211 56% 70%;
 		--chart-1: 220 70% 50%;
 		--chart-2: 160 60% 45%;
 		--chart-3: 30 80% 55%;

@@ -7,6 +7,7 @@ import { VideoViewerInvite } from "@cap/database/emails/video-viewer-invite";
 import { nanoId } from "@cap/database/helpers";
 import { videos, videoViewerGrants } from "@cap/database/schema";
 import { serverEnv } from "@cap/env";
+import { BRAND_NAME } from "@cap/utils/brand";
 import type { Video } from "@cap/web-domain";
 import { and, eq, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -89,7 +90,7 @@ export async function inviteVideoViewer(videoId: Video.VideoId, email: string) {
 	try {
 		const result = await sendEmail({
 			email: normalizedEmail,
-			subject: `Invitation to watch ${video.name} on Cap`,
+			subject: `Invitation to watch ${video.name} on ${BRAND_NAME}`,
 			react: VideoViewerInvite({
 				email: normalizedEmail,
 				videoName: video.name,

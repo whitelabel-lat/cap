@@ -46,7 +46,7 @@ describe("Cap oEmbed", () => {
 		expect(result).toMatchObject({
 			version: "1.0",
 			type: "video",
-			provider_name: "Cap",
+			provider_name: "Zellia Clips",
 			title: "Cap walkthrough",
 			author_name: "Richie",
 			cache_age: 300,

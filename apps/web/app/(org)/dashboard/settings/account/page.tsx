@@ -4,7 +4,7 @@ import { Settings } from "./Settings";
 import { listCliApiKeys } from "./server";
 
 export const metadata: Metadata = {
-	title: "Settings — Cap",
+	title: "Settings",
 };
 
 export default async function SettingsPage() {

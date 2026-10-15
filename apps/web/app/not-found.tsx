@@ -1,3 +1,5 @@
+import { BRAND_SOURCE_CODE_URL } from "@cap/utils/brand";
+
 export default function NotFound() {
 	return (
 		<div className="wrapper flex flex-col items-center justify-center h-screen text-center">
@@ -6,14 +8,16 @@ export default function NotFound() {
 				Oops, we couldn't find this page
 			</p>
 			<p className="text-gray-400 text-lg md:text-xl">
-				Please contact the Cap team if this seems like a mistake:{" "}
-				<a
-					href="mailto:hello@cap.so"
-					className="font-medium text-gray-500 text-lg md:text-xl hover:underline"
-				>
-					hello@cap.so
-				</a>
+				If this seems like a mistake, contact your workspace administrator.
 			</p>
+			<a
+				href={BRAND_SOURCE_CODE_URL}
+				target="_blank"
+				rel="noopener noreferrer"
+				className="mt-8 text-xs text-gray-400 hover:underline"
+			>
+				Código fuente
+			</a>
 		</div>
 	);
 }

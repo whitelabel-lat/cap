@@ -15,6 +15,7 @@ import * as Db from "@cap/database/schema";
 import { getNewVideoPublic } from "@cap/database/video-sharing-default";
 import { serverEnv } from "@cap/env";
 import { userIsPro } from "@cap/utils";
+import { BRAND_NAME } from "@cap/utils/brand";
 import {
 	Database,
 	findScreenshotObjectKey,
@@ -175,7 +176,7 @@ const sendMobileEmailCode = async (email: string, code: string) => {
 
 	await sendEmail({
 		email,
-		subject: "Your Cap Verification Code",
+		subject: `Your ${BRAND_NAME} Verification Code`,
 		react: OTPEmail({ code, email }),
 	});
 };
