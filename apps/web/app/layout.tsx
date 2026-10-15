@@ -1,5 +1,5 @@
 import "@/app/globals.css";
-import { buildEnv } from "@cap/env";
+import { buildEnv, serverEnv } from "@cap/env";
 import { BRAND_COLORS, BRAND_DESCRIPTION, BRAND_NAME } from "@cap/utils/brand";
 import { OpenPanelComponent } from "@openpanel/nextjs";
 import type { Metadata } from "next";
@@ -19,11 +19,20 @@ const defaultFont = localFont({
 	preload: false,
 });
 
+const resolveWebUrl = () => {
+	try {
+		return new URL(serverEnv().WEB_URL || buildEnv.NEXT_PUBLIC_WEB_URL);
+	} catch {
+		return new URL("http://localhost:3000");
+	}
+};
+
 export const generateMetadata = (): Metadata => {
-	const webUrl = buildEnv.NEXT_PUBLIC_WEB_URL;
+	const metadataBase = resolveWebUrl();
+	const webUrl = metadataBase.origin;
 	return {
-		metadataBase: new URL(webUrl),
-		title: { default: BRAND_NAME, template: `%s | ${BRAND_NAME}` },
+		metadataBase,
+		title: BRAND_NAME,
 		description: BRAND_DESCRIPTION,
 		applicationName: BRAND_NAME,
 		openGraph: {

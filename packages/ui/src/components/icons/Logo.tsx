@@ -34,14 +34,19 @@ export const Logo = ({
 			<svg
 				viewBox={shape.viewBox}
 				xmlns="http://www.w3.org/2000/svg"
-				preserveAspectRatio="xMinYMid meet"
+				preserveAspectRatio="xMidYMid meet"
 				fill="none"
 				style={style}
 				role="img"
 				aria-label={`${BRAND_NAME} logo`}
 				className={className}
 			>
-				<path fill={bodyFill} fillRule="evenodd" d={shape.body} />
+				<path
+					className={white ? "fill-white" : "fill-gray-12"}
+					fill={bodyFill}
+					fillRule="evenodd"
+					d={shape.body}
+				/>
 				<path fill={shape.dotFill} fillRule="evenodd" d={shape.dot} />
 			</svg>
 			{showVersion && (

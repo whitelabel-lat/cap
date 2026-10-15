@@ -98,7 +98,6 @@ export const MeshFrame = ({
 	radius = 28,
 	children,
 }: {
-	mesh?: string;
 	width: number;
 	height: number;
 	padding?: number;
