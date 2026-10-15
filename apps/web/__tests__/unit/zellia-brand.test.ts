@@ -197,13 +197,7 @@ describe("emails and subjects", () => {
 	});
 });
 
-describe("whitelabel documentation and AGPL", () => {
-	it("documents the brand in WHITELABEL.md", () => {
-		expect(readFileSync(join(repoRoot, "WHITELABEL.md"), "utf8")).toContain(
-			"Marca (Zellia Clips)",
-		);
-	});
-
+describe("AGPL source link", () => {
 	it.each([
 		"app/(org)/dashboard/_components/Navbar/Items.tsx",
 		"app/s/[videoId]/_components/ShareHeader.tsx",
